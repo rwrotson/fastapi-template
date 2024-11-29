@@ -1,0 +1,25 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "fastapi-template"
+version = "0.1.0"
+description = "Base template for FastAPI apps"
+authors = ["Igor Lashkov <rwrotson@yandex.ru>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.13"
+fastapi = "^0.115.4"
+loguru = "^0.7.2"
+uvicorn = "^0.32.0"
+gunicorn = "^23.0.0"
+celery = "^5.4.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.7.2"
+pytest = "^8.3.3"
+
+
