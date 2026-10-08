@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type check
+        run: uv run mypy src/
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Security audit
+        # Audit the project's own locked dependencies, not the whole ephemeral
+        # environment: `uv run --with pip-audit` would otherwise also pull in
+        # pip-audit's own deps (requests/urllib3/idna) and fail on advisories
+        # that are not part of this project.
+        run: |
+          uv export --format requirements-txt --all-extras \
+            --no-emit-project --no-hashes --output-file requirements-audit.txt
+          uv run --with pip-audit pip-audit --requirement requirements-audit.txt --no-deps
+
+      - name: Scan for vulnerabilities (trivy)
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+          trivy fs --exit-code 1 --severity CRITICAL,HIGH --skip-dirs .venv .

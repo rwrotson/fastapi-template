@@ -1,0 +1,258 @@
+# PROJECT ----------------------------------------------------------------------
+[project]
+name = "cli-app"
+version = "0.4.4"
+description = "Add your description here"
+authors = [
+    { name = "Igor Lashkov", email = "rwrotson@yandex.ru" },
+]
+maintainers = []
+keywords = [
+    "template",
+    "example",
+    "typer",
+    "structlog",
+    "pydantic-settings",
+    "uv",
+    "pytest",
+    "ruff",
+    "mypy",
+    "precommit",
+    "mkdocs",
+
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.13",
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic-settings>=2.14.2",
+    "structlog>=26.1.0",
+    "typer>=0.26.8",
+]
+
+[dependency-groups]
+dev = [
+    "commitizen>=4.16.4",
+    "emojis>=0.7.0",
+    "mypy>=2.1.0",
+    "pre-commit>=4.6.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.15.1",
+    "pytest-xdist>=3.8.0",
+    "ruff>=0.15.20",
+    "taskipy>=1.14.1",
+]
+docs = [
+    "mkdocs-gen-files>=0.6.1",
+    "mkdocs-literate-nav>=0.6.3",
+    "mkdocs-material>=9.7.6",
+    "mkdocs-minify-plugin>=0.8.0",
+    "mkdocstrings[python]>=1.0.4",
+]
+
+[project.scripts]
+cli-app = "cli_app.main:main"
+
+
+
+# BUILD BACKEND ----------------------------------------------------------------
+[build-system]
+requires = ["uv_build>=0.11.26,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "cli_app"
+module-root = "src"
+
+
+# PYTEST -----------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--maxfail=3 --tb=short --cov --cov-report=term-missing -n auto"
+
+[tool.coverage.run]
+source = ["cli_app"]
+omit = ["*/__init__.py"]
+parallel = true
+concurrency = ["multiprocessing"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 80
+
+
+# MYPY -------------------------------------------------------------------------
+[tool.mypy]
+mypy_path = "src"
+explicit_package_bases = true
+files = ["src", "tests"]
+exclude_gitignore = true
+python_version = "3.13"
+disallow_untyped_defs = true
+disallow_any_unimported = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+no_implicit_reexport = true
+check_untyped_defs = true
+warn_return_any = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unused_configs = true
+strict_equality = true
+show_error_codes = true
+
+
+# RUFF -------------------------------------------------------------------------
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    "migrations",
+]
+line-length = 100
+indent-width = 4
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "ERA",
+    "YTT",
+    "ANN",
+    "ASYNC",
+    "S",
+    "BLE",
+    "B",
+    "A",
+    "COM",
+    "C4",
+    "DTZ",
+    "ICN",
+    "LOG",
+    "G",
+    "INP",
+    "PIE",
+    "PYI",
+    "PT",
+    "Q",
+    "RSE",
+    "RET",
+    "SLF",
+    "SIM",
+    "SLOT",
+    "TID",
+    "ARG",
+    "PTH",
+    "FLY",
+    "I",
+    "C90",
+    "N",
+    "PERF",
+    "E",
+    "W",
+    "DOC",
+    "D",
+    "F",
+    "PL",
+    "PLC",
+    "PLE",
+    "PLR",
+    "PLW",
+    "UP",
+    "FURB",
+    "RUF",
+    "TRY"
+]
+ignore = [
+    "FBT001",
+    "FBT002",
+    "F811",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "D203",
+    "D213",
+    "D407",
+    "D413",
+    "S101",
+    "ANN201",
+    "PLR1711",
+    "PLR0913",
+    "PIE790",
+    "N817",
+    "TRY003",
+    "COM812",
+]
+fixable = ["I", "D2"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"  # Allow unused variables when underscore-prefixed.
+
+[tool.ruff.lint.isort]
+known-local-folder = ["cli_app"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+
+
+# COMMITIZEN -------------------------------------------------------------------
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version_scheme = "pep440"
+version_provider = "uv"
+update_changelog_on_bump = true
+major_version_zero = true
+
+
+# TASKIPY ---------------------------------------------------------------------
+[tool.taskipy.tasks]
+lint = "ruff check ."
+fmt = "ruff format ."
+typecheck = "mypy src/"
+test = "pytest"
+test-fast = "pytest --no-cov -n auto"
+audit = "pip-audit"
