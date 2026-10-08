@@ -29,30 +29,30 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "pydantic-settings>=2.14.2",
+    "pydantic-settings>=2.15.0",
     "structlog>=26.1.0",
-    "typer>=0.26.8",
+    "typer>=0.27.2",
 ]
 
 [dependency-groups]
 dev = [
-    "commitizen>=4.16.4",
+    "commitizen>=4.19.1",
     "emojis>=0.7.0",
-    "mypy>=2.1.0",
-    "pre-commit>=4.6.0",
+    "mypy>=2.4.0",
+    "pre-commit>=4.6.2",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
-    "pytest-mock>=3.15.1",
+    "pytest-mock>=3.16.0",
     "pytest-xdist>=3.8.0",
-    "ruff>=0.15.20",
+    "ruff>=0.16.10",
     "taskipy>=1.14.1",
 ]
 docs = [
     "mkdocs-gen-files>=0.6.1",
     "mkdocs-literate-nav>=0.6.3",
-    "mkdocs-material>=9.7.6",
+    "mkdocs-material>=9.7.7",
     "mkdocs-minify-plugin>=0.8.0",
-    "mkdocstrings[python]>=1.0.4",
+    "mkdocstrings[python]>=1.0.6",
 ]
 
 [project.scripts]
@@ -62,7 +62,7 @@ cli-app = "cli_app.main:main"
 
 # BUILD BACKEND ----------------------------------------------------------------
 [build-system]
-requires = ["uv_build>=0.11.26,<0.12"]
+requires = ["uv_build>=0.12.23,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
