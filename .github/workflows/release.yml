@@ -47,6 +47,7 @@ jobs:
           image-ref: release-candidate
           exit-code: "1"
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io

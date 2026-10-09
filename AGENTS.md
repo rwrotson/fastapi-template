@@ -13,7 +13,7 @@ uv run poe check          # fmt-check, lint, lint-imports, typecheck, test
 uv run --all-extras --group docs properdocs build --strict
 ```
 
-Individual tasks: `fmt`, `fmt-check`, `lint`, `lint-imports`, `typecheck`, `test`, `test-fast` (no coverage), `test-integration`, `migrate`, `docs`, `audit`. CI runs formatting, lint, import-linter contracts, strict MyPy (including migrations), pytest with 95% coverage, tests against the lowest allowed direct dependencies, a migrated PostgreSQL integration test with `alembic check`, package/docs/container builds, dependency audit, and an image vulnerability scan.
+Individual tasks: `fmt`, `fmt-check`, `lint`, `lint-imports`, `typecheck`, `test`, `test-fast` (no coverage), `test-integration`, `migrate`, `docs`, `audit`. CI runs formatting, lint, import-linter contracts, strict MyPy (including migrations), pytest with 95% coverage, tests against the lowest allowed direct dependencies, a migrated PostgreSQL integration test with `alembic check`, package/docs/container builds, dependency audit, and an image vulnerability scan (CRITICAL/HIGH with an available fix).
 
 ## Dependencies
 
