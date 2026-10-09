@@ -1,18 +1,21 @@
-site_name: typer-template
-site_description: A template for building Python CLI apps using Typer with Rich output and structured logging
-repo_url: https://github.com/rwrotson/typer-template
-repo_name: rwrotson/typer-template
+site_name: fastapi-template
+site_description: A production-ready FastAPI application template
+repo_url: https://github.com/rwrotson/fastapi-template
+repo_name: rwrotson/fastapi-template
 
 watch:
-  - src/cli_app/
+  - src/app/
   - .env.example
   - README.md
 
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
+  - Architecture: architecture.md
+  - Storage: storage.md
+  - Observability: observability.md
+  - Deployment: deployment.md
   - Configuration: configuration.md
-  - Notes: notes.md
   - API Reference: reference/
 
 theme:
@@ -39,7 +42,6 @@ theme:
     - search.suggest
     - search.highlight
     - content.code.copy
-    - content.code.annotate
 
 plugins:
   - search
@@ -58,12 +60,11 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [.]
+          paths: [src]
           options:
             show_source: true
             show_root_heading: true
             separate_signature: true
-            merge_init_into_class: true
             filters:
               - "!^_"
 
@@ -80,9 +81,6 @@ markdown_extensions:
       base_path: [.]
   - pymdownx.tabbed:
       alternate_style: true
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - tables
   - toc:
       permalink: true

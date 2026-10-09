@@ -1,155 +1,41 @@
 # Getting Started
 
-## Requirements
+## Run locally
 
-- Python 3.13+
-- [uv](https://docs.astral.sh/uv/getting-started/installation/)
-
-## Installation
+Install uv (it provides the Python version in `.python-version`), then:
 
 ```bash
-git clone <repo-url>
-cd typer-template
-uv sync --all-extras
+cp .env.example .env
+uv sync --all-extras --all-groups
+uv run poe serve
+```
+
+Open <http://127.0.0.1:8000/docs> or try:
+
+```bash
+curl http://127.0.0.1:8000/live
+curl http://127.0.0.1:8000/ready
+curl http://127.0.0.1:8000/api/v1/examples/Ada
+curl -X POST http://127.0.0.1:8000/api/v1/examples/tasks -H 'Content-Type: application/json' -d '{"message":"hello"}'
+```
+
+The example task only logs the message after the response; it does not persist work.
+
+To try the persistent notes example, start PostgreSQL with `docker compose -f compose.yml -f compose.dev.yml --profile postgres up -d postgres`, install the `postgres-orm` extra, set `APP_POSTGRES_ORM__DSN=postgresql+psycopg://app:app@localhost:5432/app`, run `uv run poe migrate`, and start the app. `POST /api/v1/notes` accepts `{"content":"hello"}` and returns an ID for `GET /api/v1/notes/{note_id}`. These routes return 503 when PostgreSQL ORM is not configured, and an unknown ID returns a 404 problem response.
+
+## Quality checks
+
+```bash
+uv run poe check         # fmt-check, lint, lint-imports, typecheck, test
+uv run poe test-fast     # tests without coverage
+uv run --all-extras --group docs mkdocs build --strict
 uv run pre-commit install
 ```
 
-## Running the CLI
+Tests run in random order (pytest-randomly prints the seed; reproduce a failure with `uv run poe test-fast --randomly-seed=<seed>`). Integration tests need a migrated database. Run them with `APP_POSTGRES_ORM__DSN=... uv run poe test-integration`. Without the variable they are skipped in a normal run and fail fast when selected explicitly.
 
-```bash
-uv run cli-app --help
-uv run cli-app --version
-uv run cli-app --authors
-```
+## Add a route
 
-### Global flags
+Put transport-independent business rules, types, and use cases in `src/app/services/`. Create a thin router under `src/app/api/v1/` with Pydantic request and response models, then include it in the versioned router in `src/app/api/v1/__init__.py`. If the use case needs storage, define its port beside the use case and wire an infrastructure adapter through `src/app/api/dependencies/`. Raise a service error such as `NotFoundError` for expected failures; the error handlers turn it into a problem response. See the [architecture guide](architecture.md) for the import rules and request flow.
 
-These flags work in front of any subcommand:
-
-```bash
-# Enable DEBUG logging for the duration of the command
-uv run cli-app --verbose command example-command hello
-
-# Emit machine-readable JSON instead of Rich text
-uv run cli-app --output-format json command example-command hello
-
-# Pipe stdin into a command
-echo "hello" | uv run cli-app command example-command
-```
-
-### Shell completion
-
-```bash
-# Install completion for the current shell
-uv run cli-app completion install
-
-# Or target a specific shell
-uv run cli-app completion install --shell zsh
-
-# Print the script without installing
-uv run cli-app completion show
-```
-
-## Development Commands
-
-Tasks are available via taskipy — run with `uv run task <name>`:
-
-```bash
-uv run task lint        # ruff check .
-uv run task fmt         # ruff format .
-uv run task typecheck   # mypy src/
-uv run task test        # pytest (parallel, 80% coverage enforced)
-uv run task test-fast   # pytest --no-cov -n auto
-uv run task audit       # pip-audit dependency audit
-```
-
-Or run the tools directly:
-
-```bash
-uv run pytest                        # full suite
-uv run pytest --no-cov               # skip coverage (faster)
-uv run pytest tests/path/to/test.py  # single file
-```
-
-## Versioning & Changelog
-
-Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) — enforced by the `commit-msg` pre-commit hook.
-
-```bash
-uv run cz bump            # bump version, update CHANGELOG, create tag
-uv run cz changelog       # update CHANGELOG without bumping
-uv run cz changelog --dry-run
-```
-
-Bump type is inferred from commits: `fix:` → patch · `feat:` → minor · `feat!:` / `BREAKING CHANGE:` → major.
-
-## Adding a Command Group
-
-1. Create `src/cli_app/cli/commands/my_command.py`:
-
-```python
-import structlog
-from typer import Context, Typer
-
-from cli_app.utils.console import get_console
-from cli_app.utils.output import OutputFormat, render_output
-
-app = Typer()
-console = get_console()
-log = structlog.get_logger()
-
-
-@app.command()
-def my_action(ctx: Context, name: str) -> None:
-    """Do something."""
-    log.debug("my_action called", name=name)
-    fmt = ctx.obj.get("output_format", OutputFormat.text) if ctx.obj else OutputFormat.text
-    render_output(
-        {"name": name},
-        fmt,
-        text_render=lambda: console.print(f"Hello, [bold]{name}[/bold]!"),
-    )
-```
-
-2. Export it from `src/cli_app/cli/commands/__init__.py`:
-
-```python
-from .my_command import app as my_command_app
-```
-
-3. Register it in `src/cli_app/cli/app.py`:
-
-```python
-from cli_app.cli.commands import my_command_app
-app.add_typer(my_command_app, name="my-command")
-```
-
-### Stdin support
-
-Use `read_stdin_if_piped()` to accept piped input as a fallback when an argument is omitted:
-
-```python
-from cli_app.utils.stdin import read_stdin_if_piped
-
-@app.command()
-def process(ctx: Context, text: str | None = None) -> None:
-    resolved = text if text is not None else read_stdin_if_piped()
-    if not resolved:
-        raise typer.Exit(1)
-    ...
-```
-
-## Configuration
-
-Behaviour can be overridden via environment variables or a `.env` file:
-
-| Prefix | Controls |
-|--------|----------|
-| `CLI_APP_CONSOLE_*` | Rich console (theme, colors, width) |
-| `CLI_APP_LOG_*` | Log level, file path, rotation, JSON format |
-
-```env
-CLI_APP_LOG_LEVEL=DEBUG
-CLI_APP_LOG_USE_JSON_FORMATTER=true   # JSON logs for Datadog/Loki/etc.
-CLI_APP_CONSOLE_WIDTH=120
-```
+The `get_current_principal` dependency in `src/app/api/v1/auth.py` returns 401 until you implement authentication. Use it on protected routes only after defining a real identity provider and authorization rules.

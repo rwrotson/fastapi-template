@@ -1,244 +1,125 @@
-# PROJECT ----------------------------------------------------------------------
 [project]
-name = "cli-app"
-version = "0.4.4"
-description = "Add your description here"
-authors = [
-    { name = "Igor Lashkov", email = "rwrotson@yandex.ru" },
-]
-maintainers = []
-keywords = [
-    "template",
-    "example",
-    "typer",
-    "structlog",
-    "pydantic-settings",
-    "uv",
-    "pytest",
-    "ruff",
-    "mypy",
-    "precommit",
-    "mkdocs",
-
-]
+name = "fastapi-app"
+version = "0.1.0"
+description = "Production-ready FastAPI application template"
+authors = [{ name = "Igor Lashkov", email = "rwrotson@yandex.ru" }]
+readme = "README.md"
+requires-python = ">=3.14"
+keywords = ["fastapi", "template", "api", "uv", "docker"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.13",
+    "Framework :: FastAPI",
+    "Programming Language :: Python :: 3.14",
 ]
-readme = "README.md"
-requires-python = ">=3.13"
 dependencies = [
-    "pydantic-settings>=2.14.2",
-    "structlog>=26.1.0",
-    "typer>=0.26.8",
+    "fastapi>=0.123",
+    "starlette>=1.2.1",  # First release whose test client uses httpx2.
+    "uvicorn>=0.34",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.8",
+    "structlog>=25",
+    "prometheus-client>=0.22",
+    "opentelemetry-api>=1.30",
+    "opentelemetry-sdk>=1.30",
+    "opentelemetry-exporter-otlp-proto-http>=1.30",
+    "opentelemetry-instrumentation-fastapi>=0.51b0",
 ]
+
+[project.optional-dependencies]
+postgres-raw = ["psycopg[binary,pool]>=3.2.10"]
+postgres-orm = ["sqlalchemy[asyncio]>=2.0.45", "psycopg[binary]>=3.2.10", "alembic>=1.15"]
+clickhouse = ["clickhouse-connect[async]>=1.0"]
+mongodb = ["pymongo>=4.15.2"]
+redis = ["redis>=6"]
 
 [dependency-groups]
 dev = [
-    "commitizen>=4.16.4",
-    "emojis>=0.7.0",
-    "mypy>=2.1.0",
-    "pre-commit>=4.6.0",
-    "pytest>=9.1.1",
-    "pytest-cov>=7.1.0",
-    "pytest-mock>=3.15.1",
-    "pytest-xdist>=3.8.0",
-    "ruff>=0.15.20",
-    "taskipy>=1.14.1",
+    "commitizen>=4.16",
+    "httpx2>=2.13",
+    "import-linter>=2.3",
+    "mypy>=1.15",
+    "poethepoet>=0.34",
+    "pre-commit>=4.2",
+    "pytest>=8.3",
+    "pytest-cov>=6",
+    "pytest-asyncio>=1.0",
+    "pytest-randomly>=5.0",
+    "pytest-timeout>=2.4",
+    "ruff>=0.15",
 ]
 docs = [
-    "mkdocs-gen-files>=0.6.1",
-    "mkdocs-literate-nav>=0.6.3",
-    "mkdocs-material>=9.7.6",
-    "mkdocs-minify-plugin>=0.8.0",
-    "mkdocstrings[python]>=1.0.4",
+    "mkdocs-gen-files>=0.6",
+    "mkdocs-literate-nav>=0.6",
+    "mkdocs-material>=9.7.7",
+    "mkdocs-minify-plugin>=0.8",
+    "mkdocstrings[python]>=0.29",
 ]
 
-[project.scripts]
-cli-app = "cli_app.main:main"
-
-
-
-# BUILD BACKEND ----------------------------------------------------------------
 [build-system]
 requires = ["uv_build>=0.11.26,<0.12"]
 build-backend = "uv_build"
 
+[tool.uv]
+# Security floors for transitive dependencies.
+constraint-dependencies = ["urllib3>=2.8.0", "virtualenv>=21.7.13"]
+
 [tool.uv.build-backend]
-module-name = "cli_app"
+module-name = "app"
 module-root = "src"
 
-
-# PYTEST -----------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--maxfail=3 --tb=short --cov --cov-report=term-missing -n auto"
+addopts = "-ra --tb=short --strict-markers --strict-config"
+markers = ["integration: requires a migrated PostgreSQL database"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+xfail_strict = true
+filterwarnings = ["error"]
+timeout = 30
 
 [tool.coverage.run]
-source = ["cli_app"]
+source = ["app"]
 omit = ["*/__init__.py"]
-parallel = true
-concurrency = ["multiprocessing"]
+branch = true
 
 [tool.coverage.report]
 show_missing = true
-skip_covered = false
-fail_under = 80
+fail_under = 95
 
-
-# MYPY -------------------------------------------------------------------------
 [tool.mypy]
+python_version = "3.14"
 mypy_path = "src"
-explicit_package_bases = true
-files = ["src", "tests"]
-exclude_gitignore = true
-python_version = "3.13"
-disallow_untyped_defs = true
-disallow_any_unimported = true
-disallow_any_generics = true
-disallow_subclassing_any = true
-disallow_untyped_calls = true
-disallow_incomplete_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-no_implicit_reexport = true
-check_untyped_defs = true
-warn_return_any = true
-warn_redundant_casts = true
+files = ["src", "tests", "migrations", "docs"]
+strict = true
 warn_unused_ignores = true
-warn_unused_configs = true
-strict_equality = true
-show_error_codes = true
+plugins = ["pydantic.mypy"]
 
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
-# RUFF -------------------------------------------------------------------------
 [tool.ruff]
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".ipynb_checkpoints",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
-    "migrations",
-]
 line-length = 100
-indent-width = 4
-target-version = "py313"
+target-version = "py314"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = [
-    "ERA",
-    "YTT",
-    "ANN",
-    "ASYNC",
-    "S",
-    "BLE",
-    "B",
-    "A",
-    "COM",
-    "C4",
-    "DTZ",
-    "ICN",
-    "LOG",
-    "G",
-    "INP",
-    "PIE",
-    "PYI",
-    "PT",
-    "Q",
-    "RSE",
-    "RET",
-    "SLF",
-    "SIM",
-    "SLOT",
-    "TID",
-    "ARG",
-    "PTH",
-    "FLY",
-    "I",
-    "C90",
-    "N",
-    "PERF",
-    "E",
-    "W",
-    "DOC",
-    "D",
-    "F",
-    "PL",
-    "PLC",
-    "PLE",
-    "PLR",
-    "PLW",
-    "UP",
-    "FURB",
-    "RUF",
-    "TRY"
+    "E", "F", "I", "UP", "B", "ASYNC", "ANN", "S", "RUF", "TID",
+    "FAST", "C4", "SIM", "PT", "RET", "ARG", "PERF", "FURB", "PL", "DTZ",
+    "T20", "ERA", "BLE", "N", "PIE",
 ]
-ignore = [
-    "FBT001",
-    "FBT002",
-    "F811",
-    "D100",
-    "D101",
-    "D102",
-    "D103",
-    "D104",
-    "D105",
-    "D106",
-    "D107",
-    "D203",
-    "D213",
-    "D407",
-    "D413",
-    "S101",
-    "ANN201",
-    "PLR1711",
-    "PLR0913",
-    "PIE790",
-    "N817",
-    "TRY003",
-    "COM812",
-]
-fixable = ["I", "D2"]
-unfixable = []
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"  # Allow unused variables when underscore-prefixed.
+ignore = ["S101", "ANN201"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004", "ARG", "S105", "S106"]
+"migrations/**" = ["ERA"]
+"docs/**" = ["T20"]
 
 [tool.ruff.lint.isort]
-known-local-folder = ["cli_app"]
+known-first-party = ["app"]
 
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-docstring-code-format = true
-docstring-code-line-length = "dynamic"
-
-
-# COMMITIZEN -------------------------------------------------------------------
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "v$version"
@@ -247,12 +128,53 @@ version_provider = "uv"
 update_changelog_on_bump = true
 major_version_zero = true
 
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
 
-# TASKIPY ---------------------------------------------------------------------
-[tool.taskipy.tasks]
-lint = "ruff check ."
+[[tool.importlinter.contracts]]
+name = "Services stay independent of transport, storage and configuration"
+type = "forbidden"
+source_modules = ["app.services"]
+forbidden_modules = [
+    "fastapi", "starlette", "pydantic_settings", "sqlalchemy", "psycopg", "psycopg_pool",
+    "redis", "pymongo", "clickhouse_connect", "app.api", "app.infra", "app.core", "app.config",
+]
+
+[[tool.importlinter.contracts]]
+name = "Infrastructure does not depend on HTTP"
+type = "forbidden"
+source_modules = ["app.infra"]
+forbidden_modules = ["fastapi", "starlette", "app.api"]
+
+[[tool.importlinter.contracts]]
+name = "Configuration has no application dependencies"
+type = "forbidden"
+source_modules = ["app.config"]
+forbidden_modules = ["app.api", "app.infra", "app.services", "app.core"]
+
+[[tool.importlinter.contracts]]
+name = "Operational support does not depend on business or HTTP layers"
+type = "forbidden"
+source_modules = ["app.core"]
+forbidden_modules = ["app.api", "app.services", "app.infra"]
+
+[tool.poe.tasks]
+serve = "uvicorn app.main:create_app --factory --reload --no-access-log"
 fmt = "ruff format ."
-typecheck = "mypy src/"
-test = "pytest"
-test-fast = "pytest --no-cov -n auto"
-audit = "pip-audit"
+fmt-check = "ruff format --check ."
+lint = "ruff check ."
+lint-imports = "lint-imports"
+typecheck = "mypy"
+test = "pytest --cov=app"
+test-fast = "pytest"
+test-integration = "pytest --no-cov -m integration"
+migrate = "alembic upgrade head"
+docs = "mkdocs serve"
+check = ["fmt-check", "lint", "lint-imports", "typecheck", "test"]
+
+[tool.poe.tasks.audit]
+shell = """
+uv export --locked --all-extras --no-dev --no-emit-project --no-hashes --output-file requirements-audit.txt
+uv run --with pip-audit pip-audit --requirement requirements-audit.txt --no-deps
+"""

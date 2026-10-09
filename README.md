@@ -1,178 +1,85 @@
-# typer-template
+# fastapi-template
 
-A template for building Python CLI applications with [Typer](https://typer.tiangolo.com/), featuring Rich output, structured logging via structlog, and environment-based configuration.
+A GitHub template for a typed FastAPI service. It starts without a database and provides optional async clients for PostgreSQL, ClickHouse, MongoDB, and Redis.
 
-## Stack
+## What is included
 
-- **[Typer](https://typer.tiangolo.com/)** — CLI framework
-- **[Rich](https://rich.readthedocs.io/)** — terminal output and progress bars
-- **[structlog](https://www.structlog.org/)** — structured logging with context binding; dev console output or JSON for aggregators
-- **[Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)** — environment-based configuration
-- **[uv](https://docs.astral.sh/uv/)** — package management
-- **[Ruff](https://docs.astral.sh/ruff/)** — linting and formatting
-- **[MyPy](https://mypy.readthedocs.io/)** — strict type checking
-- **[pytest](https://docs.pytest.org/)** + **[pytest-xdist](https://github.com/pytest-dev/pytest-xdist)** — parallel testing with coverage enforcement
-- **[commitizen](https://commitizen-tools.github.io/commitizen/)** — Conventional Commits + automated versioning and CHANGELOG
-- **[MkDocs Material](https://squidfunk.github.io/mkdocs-material/)** — documentation site
+- FastAPI app factory, Pydantic Settings, JSON logs with request and trace IDs, Prometheus metrics, optional OpenTelemetry traces
+- `/api/v1` example routes, an optional transactional PostgreSQL notes example, `/live` and dependency-aware `/ready`, RFC 9457 problem details for errors, OpenAPI at `/docs` outside production
+- Strict MyPy, Ruff, import-linter layer contracts, pytest with a 95% coverage gate and random test order, a lowest-dependency test job, uv, poethepoet, pre-commit, Commitizen
+- Multi-stage Docker image with cached dependency layers, hot reload Compose with optional database profiles, VPS Compose with log rotation and a migration service
+- Release images for amd64 and arm64 on GHCR, MkDocs reference on GitHub Pages
 
-## Requirements
+## Quick start
 
-- Python 3.13+
-- uv
-
-## Getting Started
+Requires [uv](https://docs.astral.sh/uv/); it installs the Python version from `.python-version`.
 
 ```bash
-# Clone the repo and install dependencies
-uv sync --all-extras
+cp .env.example .env
+uv sync --all-extras --all-groups
+uv run poe serve
+curl http://127.0.0.1:8000/live
+curl http://127.0.0.1:8000/ready
+curl http://127.0.0.1:8000/api/v1/examples/Ada
+```
 
-# Run the CLI
-uv run cli-app --help
+`--all-extras` installs every optional integration. Install only the extras a service uses, for example `uv sync --extra postgres-orm`. Each enabled backend requires its matching extra; see [storage](docs/storage.md).
 
-# Install pre-commit hooks (enforces Conventional Commits)
+```bash
+uv run poe check        # format check, lint, import contracts, type check, tests
+uv run poe fmt          # rewrite formatting
+uv run poe docs         # serve MkDocs locally
 uv run pre-commit install
 ```
 
-## Development
+## Architecture
 
-Tasks are available via [taskipy](https://github.com/taskipy/taskipy) — run with `uv run task <name>`:
+HTTP routes call use cases in `app.services`; infrastructure implements service ports and is wired through HTTP dependencies. Import contracts enforce these boundaries. The notes example includes a port, PostgreSQL adapter, and transaction; see [architecture](docs/architecture.md).
 
-```bash
-uv run task lint        # ruff check
-uv run task fmt         # ruff format
-uv run task typecheck   # mypy src/
-uv run task test        # pytest (parallel, 80% coverage enforced)
-uv run task test-fast   # pytest --no-cov -n auto
-uv run task audit       # pip-audit dependency audit
-```
+## Docker
 
-Or run the tools directly:
+For hot reload, optionally with local databases:
 
 ```bash
-uv run pytest --no-cov -n auto          # fast parallel run
-uv run pytest tests/path/to/test.py     # single file
+cp .env.example .env
+docker compose -f compose.yml -f compose.dev.yml up --build
+docker compose -f compose.yml -f compose.dev.yml --profile postgres up --build
 ```
 
-## Docs
-
-```bash
-uv run --group docs mkdocs serve      # live preview at http://127.0.0.1:8000
-uv run --group docs mkdocs build      # build static site to site/
-uv run --group docs mkdocs gh-deploy  # deploy to GitHub Pages (gh-pages branch)
-```
-
-Source is in `docs/`. Powered by [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) with `mkdocstrings` for API reference generation.
-
-## Global CLI Flags
-
-The root app exposes flags available to every subcommand:
-
-| Flag | Short | Default | Effect |
-|------|-------|---------|--------|
-| `--verbose` | `-V` | off | Sets log level to DEBUG at runtime |
-| `--output-format` | `-f` | `text` | `text` (Rich) or `json` (machine-readable) |
-| `--version` | `-v` | — | Print version and dependency list, then exit |
-| `--authors` | `-A` | — | Print author contacts, then exit |
-
-```bash
-cli-app --verbose command example-command hello
-cli-app --output-format json command example-command hello
-echo "hello" | cli-app command example-command   # stdin piping
-```
-
-## Shell Completion
-
-```bash
-cli-app completion install           # install for the current shell
-cli-app completion install --shell zsh
-cli-app completion show              # print the completion script
-```
-
-Or directly via the built-in Typer flags:
-
-```bash
-cli-app --install-completion
-cli-app --show-completion
-```
-
-## Versioning & Changelog
-
-This template uses [Conventional Commits](https://www.conventionalcommits.org/) enforced by a `commit-msg` pre-commit hook.
-
-```bash
-# Bump version, update CHANGELOG, tag
-uv run cz bump
-
-# Preview changelog without bumping
-uv run cz changelog --dry-run
-```
-
-Bump type is inferred automatically: `fix:` → patch, `feat:` → minor, `feat!:` / `BREAKING CHANGE` → major.
+For a VPS, set `IMAGE_REF=ghcr.io/OWNER/REPO:0.1.0` and the production settings in `.env`, then run `docker compose pull && docker compose up -d`. Set the repository variable `UV_SYNC_EXTRAS` before tagging if the release image needs storage extras. The service binds to `127.0.0.1:8000` on the host. Put your reverse proxy in front of that address and **block `/metrics`** from public access. See the [deployment guide](docs/deployment.md).
 
 ## Configuration
 
-Console and logging behaviour can be configured via environment variables or a `.env` file:
+`app.config.Settings` defines defaults in code and reads `APP_*` environment variables and `.env`. Storage settings are nested with `__`, for example `APP_POSTGRES_ORM__DSN`; a backend is enabled when its DSN (or ClickHouse host) is set. Secrets are `SecretStr` values and are masked in logs and reprs. CORS defaults to no browser origins and trusted hosts default to localhost; add your external hostname to `APP_ALLOWED_HOSTS`. OpenAPI docs are disabled when `APP_ENVIRONMENT=production` unless `APP_DOCS_ENABLED=true`. See [.env.example](.env.example) and the generated configuration page in the documentation site.
 
-| Prefix | Controls |
-|--------|----------|
-| `CLI_APP_CONSOLE_*` | Rich console settings (theme, colors, width) |
-| `CLI_APP_LOG_*` | Log level, file rotation, JSON output |
+## Use as a template
 
-```env
-CLI_APP_LOG_LEVEL=DEBUG
-CLI_APP_LOG_USE_JSON_FORMATTER=true   # emit JSON logs (for Datadog, Loki, etc.)
-CLI_APP_CONSOLE_WIDTH=120
+1. Select **Use this template** on GitHub and clone your new repository.
+2. Change the distribution name in `pyproject.toml` and `DISTRIBUTION` in `src/app/main.py`, the project title in README and `mkdocs.yml`, `APP_NAME`, and the GitHub URLs. Rename the `app` package only if your project needs a unique import name, and then update `module-name`, imports, import-linter, coverage, MyPy, and documentation generation together.
+3. Choose storage extras, add your own API routers and models, and configure secrets in `.env` or your deployment secret store. Keep `.env` untracked.
+4. Configure GitHub Pages to use GitHub Actions. A `v*` tag runs CI, then publishes the docs and a GHCR image. The VPS pull and Compose restart are manual.
+
+### Remove the examples
+
+The examples are meant to be copied, then deleted. When your first real feature exists, remove:
+
+- greeting: `src/app/services/greeting.py`, `src/app/api/v1/examples.py`, its `include_router` line in `src/app/api/v1/__init__.py`, and the `/examples` assertions in `tests/api/test_app.py` and `tests/api/test_errors.py`
+- notes: `src/app/services/notes.py`, `src/app/infra/storage/notes.py`, `src/app/api/dependencies/notes.py`, `src/app/api/v1/notes.py`, its `include_router` line, `migrations/versions/0001_example_notes.py`, the `NoteRow` import in `migrations/env.py`, the note fakes in `tests/fakes.py`, `tests/contracts/note_unit_of_work.py`, the `test_notes.py` files under `tests/services/`, `tests/api/`, and `tests/infra/`, and the note tests in `tests/integration/`
+- the matching sections in `docs/architecture.md`, `docs/storage.md`, and `docs/getting_started.md`
+
+Then run `uv run poe check`.
+
+## Project layout
+
+```text
+src/app/services/       use cases, service types, errors, and ports for external services
+src/app/api/            HTTP routes, schemas, error handlers, auth and dependency wiring
+src/app/infra/storage/  optional client and repository adapters
+src/app/config/         Pydantic Settings with environment overrides and code defaults
+src/app/core/           logs, middleware, problem details, metrics, tracing
+migrations/             optional PostgreSQL ORM Alembic environment
+compose.yml             production VPS service and migration job
+compose.dev.yml         development override with hot reload and database profiles
 ```
 
-## Project Structure
-
-```
-src/
-└── cli_app/
-    ├── main.py              # entry point
-    ├── cli/
-    │   ├── app.py           # root Typer app (--verbose, --output-format, --version, --authors)
-    │   ├── callbacks/       # eager option callbacks (--version, --authors)
-    │   └── commands/
-    │       ├── command.py   # example command group (stdin + output-format patterns)
-    │       └── completion.py # shell completion sub-app
-    ├── core/                # domain logic + Settings
-    └── utils/
-        ├── console.py       # singleton Rich Console
-        ├── log.py           # structlog setup (ConsoleRenderer dev / JSON prod)
-        ├── output.py        # OutputFormat enum, render_output(), echo_json()
-        ├── stdin.py         # is_stdin_piped(), read_stdin_if_piped(), iter_stdin_lines()
-        ├── meta.py          # distribution metadata at runtime
-        ├── format.py        # Rich Theme
-        ├── emoji.py         # Emoji StrEnum
-        ├── progress.py      # Rich Progress bar factory
-        └── misc.py          # find_project_root()
-```
-
-## CI/CD
-
-`.github/workflows/ci.yml` runs on every push/PR to `main` and `dev`:
-
-| Step | What it does |
-|------|-------------|
-| ruff format | formatting check |
-| ruff lint | linting |
-| mypy | strict type checking |
-| pytest | parallel tests, 80% coverage enforced |
-| pip-audit | known CVE check for dependencies |
-| trivy | filesystem vulnerability scan (CRITICAL/HIGH, fails build) |
-
-Dependabot opens weekly PRs for both pip packages and GitHub Actions.
-
-`.github/workflows/release.yml` runs on version tags (`v*`):
-
-| Job | What it does |
-|-----|-------------|
-| `publish` | builds the package and publishes to PyPI via OIDC trusted publisher (no secrets) |
-| `docs` | deploys MkDocs to GitHub Pages |
-
-PyPI publishing uses keyless OIDC — configure a trusted publisher on PyPI pointing to this repo with workflow file `release.yml`.
-
-## Author
-
-Igor Lashkov — rwrotson@yandex.ru
+The `BackgroundTasks` example runs in process; queued work can be lost when the process stops.
