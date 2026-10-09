@@ -8,7 +8,7 @@ A GitHub template for a typed FastAPI service. It starts without a database and 
 - `/api/v1` example routes, an optional transactional PostgreSQL notes example, `/live` and dependency-aware `/ready`, RFC 9457 problem details for errors, OpenAPI at `/docs` outside production
 - Strict MyPy, Ruff, import-linter layer contracts, pytest with a 95% coverage gate and random test order, a lowest-dependency test job, uv, poethepoet, pre-commit, Commitizen
 - Multi-stage Docker image with cached dependency layers, hot reload Compose with optional database profiles, VPS Compose with log rotation and a migration service
-- Release images for amd64 and arm64 on GHCR, MkDocs reference on GitHub Pages
+- Release images for amd64 and arm64 on GHCR, ProperDocs reference on GitHub Pages
 
 ## Quick start
 
@@ -28,7 +28,7 @@ curl http://127.0.0.1:8000/api/v1/examples/Ada
 ```bash
 uv run poe check        # format check, lint, import contracts, type check, tests
 uv run poe fmt          # rewrite formatting
-uv run poe docs         # serve MkDocs locally
+uv run poe docs         # serve the docs locally (ProperDocs)
 uv run pre-commit install
 ```
 
@@ -55,7 +55,7 @@ For a VPS, set `IMAGE_REF=ghcr.io/OWNER/REPO:0.1.0` and the production settings 
 ## Use as a template
 
 1. Select **Use this template** on GitHub and clone your new repository.
-2. Change the distribution name in `pyproject.toml` and `DISTRIBUTION` in `src/app/main.py`, the project title in README and `mkdocs.yml`, `APP_NAME`, and the GitHub URLs. Rename the `app` package only if your project needs a unique import name, and then update `module-name`, imports, import-linter, coverage, MyPy, and documentation generation together.
+2. Change the distribution name in `pyproject.toml` and `DISTRIBUTION` in `src/app/main.py`, the project title in README and `properdocs.yml`, `APP_NAME`, and the GitHub URLs. Rename the `app` package only if your project needs a unique import name, and then update `module-name`, imports, import-linter, coverage, MyPy, and documentation generation together.
 3. Choose storage extras, add your own API routers and models, and configure secrets in `.env` or your deployment secret store. Keep `.env` untracked.
 4. Configure GitHub Pages to use GitHub Actions. A `v*` tag runs CI, then publishes the docs and a GHCR image. The VPS pull and Compose restart are manual.
 

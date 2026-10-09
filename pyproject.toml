@@ -65,6 +65,7 @@ docs = [
     "mkdocs-material>=9.7.7",
     "mkdocs-minify-plugin>=0.8.0",
     "mkdocstrings[python]>=1.0.6",
+    "properdocs>=1.6.7",
 ]
 
 [build-system]
@@ -242,7 +243,7 @@ test = "pytest --cov=app"
 test-fast = "pytest"
 test-integration = "pytest --no-cov -m integration"
 migrate = "alembic upgrade head"
-docs = "mkdocs serve"
+docs = "properdocs serve"
 check = ["fmt-check", "lint", "lint-imports", "typecheck", "test"]
 
 [tool.poe.tasks.audit]

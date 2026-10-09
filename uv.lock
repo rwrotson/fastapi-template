@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.14"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -670,6 +670,7 @@ docs = [
     { name = "mkdocs-material" },
     { name = "mkdocs-minify-plugin" },
     { name = "mkdocstrings", extra = ["python"] },
+    { name = "properdocs" },
 ]
 
 [package.metadata]
@@ -716,6 +717,7 @@ docs = [
     { name = "mkdocs-material", specifier = ">=9.7.7" },
     { name = "mkdocs-minify-plugin", specifier = ">=0.8.0" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.6" },
+    { name = "properdocs", specifier = ">=1.6.7" },
 ]
 
 [[package]]
