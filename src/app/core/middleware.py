@@ -36,6 +36,7 @@ class RequestMiddleware:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """Pass through non-HTTP scopes and instrument HTTP requests."""
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return

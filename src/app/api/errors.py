@@ -25,7 +25,8 @@ PROBLEM_RESPONSES = problem_responses(422, 500, 503)
 
 async def http_error(request: Request, exc: Exception) -> Response:
     """Render an HTTP exception as a problem response."""
-    assert isinstance(exc, HTTPException)
+    if not isinstance(exc, HTTPException):
+        raise TypeError("Expected HTTPException")
     return problem_response(
         exc.status_code, detail=exc.detail, instance=request.url.path, headers=exc.headers
     )
@@ -33,7 +34,8 @@ async def http_error(request: Request, exc: Exception) -> Response:
 
 async def validation_error(request: Request, exc: Exception) -> Response:
     """Render request validation failures as problem responses."""
-    assert isinstance(exc, RequestValidationError)
+    if not isinstance(exc, RequestValidationError):
+        raise TypeError("Expected RequestValidationError")
     return problem_response(
         422,
         detail="Request validation failed",

@@ -106,16 +106,76 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = [
-    "E", "F", "I", "UP", "B", "ASYNC", "ANN", "S", "RUF", "TID",
-    "FAST", "C4", "SIM", "PT", "RET", "ARG", "PERF", "FURB", "PL", "DTZ",
-    "T20", "ERA", "BLE", "N", "PIE",
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "ASYNC",
+    "ANN",
+    "S",
+    "RUF",
+    "TID",
+    "FAST",
+    "C4",
+    "SIM",
+    "PT",
+    "RET",
+    "ARG",
+    "PERF",
+    "FURB",
+    "PL",
+    "DTZ",
+    "T20",
+    "ERA",
+    "BLE",
+    "N",
+    "PIE",
+    "D101",
+    "D102",
+    "D103",
+    "PGH003",
+    "PGH004",
+    "T100",
+    "C901",
+    "FBT003",
+    "A001",
+    "A002",
+    "A004",
+    "A005",
+    "A006",
+    "G001",
+    "G002",
+    "G003",
+    "G004",
+    "G101",
+    "G201",
+    "G202",
+    "LOG001",
+    "LOG002",
+    "LOG014",
+    "LOG015"
 ]
-ignore = ["S101", "ANN201"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["PLR2004", "ARG", "S105", "S106"]
+"tests/**" = [
+    "PLR2004",
+    "ARG",
+    "S101",
+    "S105",
+    "S106",
+    "D101",
+    "D102",
+    "D103"
+]
 "migrations/**" = ["ERA"]
 "docs/**" = ["T20"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 8
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
