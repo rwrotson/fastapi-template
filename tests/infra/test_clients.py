@@ -40,11 +40,12 @@ async def test_postgres_raw_client_lifecycle(monkeypatch: pytest.MonkeyPatch) ->
     )
     assert created["conninfo"] == "postgresql://localhost/test"
     assert created["max_size"] == 3
-    assert await handle.acquire() is pool
+    acquired = await handle.acquire()
     await handle.check()
     connection.execute.assert_awaited_once_with("SELECT 1")
     await handle.close()
     pool.close.assert_awaited_once()
+    assert acquired is pool
 
 
 async def test_postgres_orm_client_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -78,11 +79,12 @@ async def test_mongodb_client_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setattr(mongodb, "AsyncMongoClient", lambda *_args, **_kwargs: client)
 
     handle = await mongodb.create_handle(MongoDBSettings(dsn=SecretStr("mongodb://localhost")))
-    assert await handle.acquire() is client
+    acquired = await handle.acquire()
     await handle.check()
     client.admin.command.assert_awaited_once_with("ping")
     await handle.close()
     client.close.assert_awaited_once()
+    assert acquired is client
 
 
 async def test_redis_client_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -92,11 +94,12 @@ async def test_redis_client_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.infra.storage.redis.Redis.from_url", lambda *_args, **_kwargs: client)
 
     handle = await redis.create_handle(RedisSettings(dsn=SecretStr("redis://localhost")))
-    assert await handle.acquire() is client
+    acquired = await handle.acquire()
     await handle.check()
     client.ping.assert_awaited_once()
     await handle.close()
     client.aclose.assert_awaited_once()
+    assert acquired is client
 
 
 async def test_clickhouse_connects_lazily_and_reconnects(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -110,8 +113,9 @@ async def test_clickhouse_connects_lazily_and_reconnects(monkeypatch: pytest.Mon
     with pytest.raises(ConnectionError):
         await handle.check()
     await handle.check()
-    assert await handle.acquire() is client
+    acquired = await handle.acquire()
     assert factory.await_count == 2
     client.command.assert_awaited_once_with("SELECT 1")
     await handle.close()
     client.close.assert_awaited_once()
+    assert acquired is client

@@ -12,51 +12,63 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "fastapi>=0.123",
-    "starlette>=1.2.1",  # First release whose test client uses httpx2.
-    "uvicorn>=0.34",
-    "pydantic>=2.13.5",
-    "pydantic-settings>=2.8",
-    "structlog>=25",
-    "prometheus-client>=0.22",
-    "opentelemetry-api>=1.30",
-    "opentelemetry-sdk>=1.30",
-    "opentelemetry-exporter-otlp-proto-http>=1.30",
-    "opentelemetry-instrumentation-fastapi>=0.51b0",
+    "fastapi>=0.143.0",
+    "starlette>=1.7.0",
+    "uvicorn>=0.54.0",
+    "pydantic>=2.14.0",
+    "pydantic-settings>=2.15.0",
+    "structlog>=26.1.0",
+    "prometheus-client>=0.26.0",
+    "opentelemetry-api>=1.45.1",
+    "opentelemetry-sdk>=1.45.1",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.1",
+    "opentelemetry-instrumentation-fastapi>=0.66b1",
 ]
 
 [project.optional-dependencies]
-postgres-raw = ["psycopg[binary,pool]>=3.2.10"]
-postgres-orm = ["sqlalchemy[asyncio]>=2.0.45", "psycopg[binary]>=3.2.10", "alembic>=1.15"]
-clickhouse = ["clickhouse-connect[async]>=1.0"]
-mongodb = ["pymongo>=4.15.2"]
-redis = ["redis>=6"]
+postgres-raw = [
+    "psycopg[binary,pool]>=3.3.6",
+]
+postgres-orm = [
+    "sqlalchemy[asyncio]>=2.1.4",
+    "psycopg[binary]>=3.3.6",
+    "alembic>=1.20.0",
+]
+clickhouse = [
+    "clickhouse-connect[async]>=1.10.0",
+]
+mongodb = [
+    "pymongo>=4.18.3",
+]
+redis = [
+    "redis>=8.1.0",
+]
 
 [dependency-groups]
 dev = [
-    "commitizen>=4.16",
-    "httpx2>=2.13",
-    "import-linter>=2.3",
-    "mypy>=1.15",
-    "poethepoet>=0.34",
-    "pre-commit>=4.2",
-    "pytest>=8.3",
-    "pytest-cov>=6",
-    "pytest-asyncio>=1.0",
-    "pytest-randomly>=5.0",
-    "pytest-timeout>=2.4",
-    "ruff>=0.15",
+    "commitizen>=4.19.2",
+    "httpx2>=2.13.1",
+    "import-linter>=2.15",
+    "mypy>=2.4.0",
+    "poethepoet>=0.48.0",
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pytest-asyncio>=1.4.0",
+    "pytest-randomly>=5.0.0",
+    "pytest-timeout>=2.4.0",
+    "ruff>=0.16.10",
 ]
 docs = [
-    "mkdocs-gen-files>=0.6",
-    "mkdocs-literate-nav>=0.6",
+    "mkdocs-gen-files>=0.6.1",
+    "mkdocs-literate-nav>=0.6.3",
     "mkdocs-material>=9.7.7",
-    "mkdocs-minify-plugin>=0.8",
-    "mkdocstrings[python]>=0.29",
+    "mkdocs-minify-plugin>=0.8.0",
+    "mkdocstrings[python]>=1.0.6",
 ]
 
 [build-system]
-requires = ["uv_build>=0.11.26,<0.12"]
+requires = ["uv_build>=0.12.24,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv]
