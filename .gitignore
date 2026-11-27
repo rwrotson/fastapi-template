@@ -218,3 +218,6 @@ requirements-audit.txt
 # Staged plans: keep only the placeholder
 /docs/plans/*
 !/docs/plans/.gitkeep
+
+# Claude Code personal overrides
+/.claude/settings.local.json

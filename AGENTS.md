@@ -16,6 +16,7 @@ This project uses [uv](https://docs.astral.sh/uv/) for package management; Pytho
 uv sync --all-extras --all-groups
 uv run poe serve
 uv run poe check            # fmt-check, lint, lint-imports, typecheck, test (95% branch coverage)
+uv run poe quick            # lint, lint-imports, typecheck (no formatting check or tests)
 uv run poe test-fast        # pytest without coverage, random order
 uv run poe test-integration # tests/integration against PostgreSQL; needs APP_POSTGRES_ORM__DSN
 uv run poe fmt              # ruff format . (rewrites files)
@@ -31,7 +32,7 @@ Other tasks: `fmt-check`, `lint`, `lint-imports`, `typecheck`, `test`, `docs`.
 - Inspect `git status` before editing. Preserve existing uncommitted changes and limit edits to the requested task.
 - When working from an active staged plan in `docs/plans/`, read it before work, implement only the first incomplete stage, append dated evidence, and stop at the stage boundary.
 - Run `uv run poe check` after application code changes. After documentation, `properdocs.yml`, or public docstring changes, also run `uv run --all-extras --group docs properdocs build --strict`.
-- Claude Code hooks in `.claude/`, if present, are conveniences and do not replace `poe check`.
+- The Claude Code hooks in `.claude/` run `ruff format` and `ruff check --fix` on the Python file just edited (an intentional edit) and, at Stop, run `poe quick` when Python files changed during the turn; they do not replace `poe check`.
 - Use non-rewriting checks (`poe fmt-check`, `poe lint`) for verification; run formatters or `--fix` only when intentionally editing files. Pre-commit's Ruff hooks rewrite files.
 - Report which checks ran, which were skipped, and why. Without `APP_POSTGRES_ORM__DSN`, report integration tests as skipped, not as verified. `poe test-fast` is not the full CI suite: it skips coverage, and CI also runs the lowest-dependency job, a migrated PostgreSQL integration job, package, docs, and container builds, and security scans.
 - When changing settings, endpoints, storage extras, or deployment, update `.env.example`, README, and the docs.
@@ -39,7 +40,7 @@ Other tasks: `fmt-check`, `lint`, `lint-imports`, `typecheck`, `test`, `docs`.
 
 ## Commit Handoff
 
-- Do not create or amend commits on the user's behalf unless the user explicitly authorizes it for the task.
+- Do not create or amend commits on the user's behalf.
 - After completing and verifying a meaningful, self-contained part of the work, pause before starting the next part.
 - At each pause, send the user a one-line English Conventional Commit message for the completed work. Resume when the user asks you to continue.
 

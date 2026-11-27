@@ -27,6 +27,7 @@ To try the persistent notes example, start PostgreSQL with `docker compose -f co
 
 ```bash
 uv run poe check         # fmt-check, lint, lint-imports, typecheck, test
+uv run poe quick         # lint, lint-imports, typecheck
 uv run poe test-fast     # tests without coverage
 uv run --all-extras --group docs properdocs build --strict
 uv run pre-commit install

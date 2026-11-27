@@ -27,10 +27,13 @@ curl http://127.0.0.1:8000/api/v1/examples/Ada
 
 ```bash
 uv run poe check        # format check, lint, import contracts, type check, tests
+uv run poe quick        # lint, import contracts, type check
 uv run poe fmt          # rewrite formatting
 uv run poe docs         # serve the docs locally (ProperDocs)
 uv run pre-commit install
 ```
+
+Claude Code hooks in `.claude/` format and autofix the Python file just edited and run `poe quick` at the end of a turn when Python files changed. Personal overrides go in `.claude/settings.local.json`, which is git-ignored.
 
 ## Architecture
 

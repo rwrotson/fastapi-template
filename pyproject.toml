@@ -244,6 +244,7 @@ test-fast = "pytest"
 test-integration = "pytest --no-cov -m integration"
 migrate = "alembic upgrade head"
 docs = "properdocs serve"
+quick = ["lint", "lint-imports", "typecheck"]
 check = ["fmt-check", "lint", "lint-imports", "typecheck", "test"]
 
 [tool.poe.tasks.audit]
