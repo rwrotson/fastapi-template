@@ -4,7 +4,7 @@
     - **`quality`** — `poe fmt-check`, `poe lint`, `poe lint-imports`, `poe typecheck`.
     - **`test`** — `poe test` (95% branch coverage) on Ubuntu.
     - **`lowest`** — installs the lowest allowed direct dependencies with every storage extra (`--resolution lowest-direct`) and runs pytest; it checks the declared lower bounds, which the lock does not.
-    - **`integration`** — starts PostgreSQL, applies migrations, runs `alembic check`, then `poe test-integration`.
+    - **`integration`** — starts PostgreSQL, applies migrations, runs `alembic check`, then `poe test-live`.
     - **`build`** — `uv build`, `properdocs build --strict`, `poe audit`.
     - **`container`** — builds the `production` image and scans it with Trivy (CRITICAL/HIGH vulnerabilities with an available fix fail the job).
 - `.github/workflows/release.yml` triggers on version tags (`v*`). It runs CI first, then:

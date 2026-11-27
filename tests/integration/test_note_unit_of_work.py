@@ -7,7 +7,7 @@ from app.infra.storage.notes import PostgresNoteUnitOfWork
 from app.services.notes import NoteUnitOfWork
 from tests.contracts.note_unit_of_work import NoteUnitOfWorkContract, UnitOfWorkFactory
 
-pytestmark = pytest.mark.integration
+pytestmark = pytest.mark.enable_socket
 
 
 class TestPostgresNoteUnitOfWork(NoteUnitOfWorkContract):

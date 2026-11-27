@@ -6,7 +6,7 @@ A GitHub template for a typed FastAPI service. It starts without a database and 
 
 - FastAPI app factory, Pydantic Settings, JSON logs with request and trace IDs, Prometheus metrics, optional OpenTelemetry traces
 - `/api/v1` example routes, an optional transactional PostgreSQL notes example, `/live` and dependency-aware `/ready`, RFC 9457 problem details for errors, OpenAPI at `/docs` outside production
-- Strict MyPy, Ruff, import-linter layer contracts, pytest with a 95% coverage gate and random test order, a lowest-dependency test job, uv, poethepoet, pre-commit, Commitizen
+- Strict MyPy, Ruff, import-linter layer contracts, pytest with a 95% coverage gate, parallel (xdist) random-order runs, and sockets blocked outside live tests, a lowest-dependency test job, uv, poethepoet, pre-commit, Commitizen
 - Multi-stage Docker image with cached dependency layers, hot reload Compose with optional database profiles, VPS Compose with log rotation and a migration service
 - Release images for amd64 and arm64 on GHCR, ProperDocs reference on GitHub Pages
 
@@ -28,6 +28,7 @@ curl http://127.0.0.1:8000/api/v1/examples/Ada
 ```bash
 uv run poe check        # format check, lint, import contracts, type check, tests
 uv run poe quick        # lint, import contracts, type check
+uv run poe test-live    # tests/integration against PostgreSQL (needs APP_POSTGRES_ORM__DSN)
 uv run poe fmt          # rewrite formatting
 uv run poe docs         # serve the docs locally (ProperDocs)
 uv run pre-commit install

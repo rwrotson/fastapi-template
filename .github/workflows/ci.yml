@@ -78,7 +78,7 @@ jobs:
         run: |
           uv run --no-sync poe migrate
           uv run --no-sync alembic check
-      - run: uv run --no-sync poe test-integration
+      - run: uv run --no-sync poe test-live
 
   build:
     runs-on: ubuntu-latest

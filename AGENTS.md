@@ -17,8 +17,8 @@ uv sync --all-extras --all-groups
 uv run poe serve
 uv run poe check            # fmt-check, lint, lint-imports, typecheck, test (95% branch coverage)
 uv run poe quick            # lint, lint-imports, typecheck (no formatting check or tests)
-uv run poe test-fast        # pytest without coverage, random order
-uv run poe test-integration # tests/integration against PostgreSQL; needs APP_POSTGRES_ORM__DSN
+uv run poe test-fast        # pytest without coverage, parallel, random order
+uv run poe test-live        # tests/integration (--live) against PostgreSQL; needs APP_POSTGRES_ORM__DSN
 uv run poe fmt              # ruff format . (rewrites files)
 uv run poe migrate          # alembic upgrade head
 uv run poe audit            # pip-audit over locked dependencies
@@ -34,7 +34,7 @@ Other tasks: `fmt-check`, `lint`, `lint-imports`, `typecheck`, `test`, `docs`.
 - Run `uv run poe check` after application code changes. After documentation, `properdocs.yml`, or public docstring changes, also run `uv run --all-extras --group docs properdocs build --strict`.
 - The Claude Code hooks in `.claude/` run `ruff format` and `ruff check --fix` on the Python file just edited (an intentional edit) and, at Stop, run `poe quick` when Python files changed during the turn; they do not replace `poe check`.
 - Use non-rewriting checks (`poe fmt-check`, `poe lint`) for verification; run formatters or `--fix` only when intentionally editing files. Pre-commit's Ruff hooks rewrite files.
-- Report which checks ran, which were skipped, and why. Without `APP_POSTGRES_ORM__DSN`, report integration tests as skipped, not as verified. `poe test-fast` is not the full CI suite: it skips coverage, and CI also runs the lowest-dependency job, a migrated PostgreSQL integration job, package, docs, and container builds, and security scans.
+- Report which checks ran, which were skipped, and why. Without `APP_POSTGRES_ORM__DSN`, report integration tests as not run (they are collected only by `poe test-live`), not as verified. `poe test-fast` is not the full CI suite: it skips coverage, and CI also runs the lowest-dependency job, a migrated PostgreSQL integration job, package, docs, and container builds, and security scans.
 - When changing settings, endpoints, storage extras, or deployment, update `.env.example`, README, and the docs.
 - Add an Alembic revision for every ORM schema change and verify it as described in the [migrations guide](docs/agents/migrations.md).
 
@@ -63,7 +63,7 @@ config    src/app/config/        Pydantic Settings and environment loading
 - The default application must start and pass `/live` and `/ready` without credentials or an external service. A backend outage affects `/ready`, not `/live` or process startup.
 - Keep mutable settings and storage state scoped to the application lifespan or request. Tests must pass in random order without depending on process-wide state.
 - Expected failures raise a `ServiceError` subclass from services; `app/api/errors.py` renders them as RFC 9457 problem details.
-- Tests never use the network, except `tests/integration/`, which connects to the PostgreSQL database named by `APP_POSTGRES_ORM__DSN`.
+- Tests never use the network, except `tests/integration/` under `--live`, which connects to the PostgreSQL database named by `APP_POSTGRES_ORM__DSN`.
 - Every secret setting is a `SecretStr` and is documented in the README "Configuration" section; secrets stay out of logs and reprs.
 - Code, docs, comments, and commit messages are in English.
 - Keep the user's `.env` and secrets untracked.

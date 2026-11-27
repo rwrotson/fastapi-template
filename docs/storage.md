@@ -31,7 +31,7 @@ The migration creates `example_notes`. After it runs, `POST /api/v1/notes` accep
 The PostgreSQL integration test uses the same `APP_POSTGRES_ORM__DSN`. Start a disposable PostgreSQL database, apply the migration, then run:
 
 ```bash
-uv run poe test-integration
+uv run poe test-live
 ```
 
-The test creates a note through HTTP and reads it in another request. It is skipped during ordinary local test runs when `APP_POSTGRES_ORM__DSN` is unset. CI starts PostgreSQL, applies the migration, and runs the integration test separately.
+The test creates a note through HTTP and reads it in another request. It is collected only with `--live`, so ordinary test runs do not include it. CI starts PostgreSQL, applies the migration, and runs the integration test separately.

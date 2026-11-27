@@ -7,7 +7,7 @@ from pydantic import SecretStr
 from app.config import PostgresOrmSettings, Settings
 from app.main import create_app
 
-pytestmark = pytest.mark.integration
+pytestmark = pytest.mark.enable_socket
 
 
 def test_migrated_postgres_persists_notes_across_requests(postgres_dsn: str) -> None:

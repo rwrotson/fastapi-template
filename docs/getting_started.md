@@ -33,7 +33,7 @@ uv run --all-extras --group docs properdocs build --strict
 uv run pre-commit install
 ```
 
-Tests run in random order (pytest-randomly prints the seed; reproduce a failure with `uv run poe test-fast --randomly-seed=<seed>`). Integration tests need a migrated database. Run them with `APP_POSTGRES_ORM__DSN=... uv run poe test-integration`. Without the variable they are skipped in a normal run and fail fast when selected explicitly.
+Tests run in parallel (pytest-xdist) and in random order (pytest-randomly prints the seed; reproduce a failure with `uv run poe test-fast -p randomly --randomly-seed=<seed>`). Sockets are blocked (pytest-socket). Integration tests need a migrated database and are collected only with `--live`: run `APP_POSTGRES_ORM__DSN=... uv run poe test-live`. Without the variable, `test-live` fails with a usage error; `poe test` does not collect them.
 
 ## Add a route
 

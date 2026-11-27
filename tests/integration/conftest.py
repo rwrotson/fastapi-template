@@ -5,17 +5,9 @@ import pytest
 DSN_VARIABLE = "APP_POSTGRES_ORM__DSN"
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Skip integration tests without a database, unless they were explicitly selected."""
-    if os.environ.get(DSN_VARIABLE):
-        return
-    markexpr: str = config.option.markexpr
-    if "integration" in markexpr and "not integration" not in markexpr:
+def pytest_configure(config: pytest.Config) -> None:
+    if config.getoption("--live") and not os.environ.get(DSN_VARIABLE):
         raise pytest.UsageError(f"{DSN_VARIABLE} is required to run integration tests")
-    skip = pytest.mark.skip(reason=f"{DSN_VARIABLE} is required")
-    for item in items:
-        if item.get_closest_marker("integration"):
-            item.add_marker(skip)
 
 
 @pytest.fixture(scope="session")
