@@ -111,3 +111,13 @@ jobs:
           exit-code: "1"
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+      - name: Smoke-test the image
+        run: |
+          trap 'docker rm --force smoke >/dev/null 2>&1 || true' EXIT
+          docker run --detach --name smoke --publish 8000:8000 fastapi-app:ci
+          if ! curl --silent --show-error --fail --output /dev/null \
+              --retry 30 --retry-delay 1 --retry-connrefused --retry-all-errors \
+              --header "Host: localhost" http://127.0.0.1:8000/live; then
+            docker logs smoke
+            exit 1
+          fi

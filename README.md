@@ -61,7 +61,7 @@ For a VPS, set `IMAGE_REF=ghcr.io/OWNER/REPO:0.1.0` and the production settings 
 1. Select **Use this template** on GitHub and clone your new repository.
 2. Change the distribution name in `pyproject.toml` and `DISTRIBUTION` in `src/app/main.py`, the project title in README and `properdocs.yml`, `APP_NAME`, and the GitHub URLs. Rename the `app` package only if your project needs a unique import name, and then update `module-name`, imports, import-linter, coverage, MyPy, and documentation generation together.
 3. Choose storage extras, add your own API routers and models, and configure secrets in `.env` or your deployment secret store. Keep `.env` untracked.
-4. Configure GitHub Pages to use GitHub Actions. A `v*` tag runs CI, then publishes the docs and a GHCR image. The VPS pull and Compose restart are manual.
+4. Configure GitHub Pages to use GitHub Actions. A `v*` tag runs CI (including a container smoke test), checks the tag against the project version, then publishes the docs and a GHCR image; manual release runs only build and scan the image. The VPS pull and Compose restart are manual.
 
 See the [renaming checklist](docs/notes.md#renaming-the-template) for every file that carries the project name.
 
