@@ -1,7 +1,9 @@
 site_name: fastapi-template
+site_url: https://rwrotson.github.io/fastapi-template/
 site_description: A production-ready FastAPI application template
 repo_url: https://github.com/rwrotson/fastapi-template
 repo_name: rwrotson/fastapi-template
+edit_uri: edit/main/docs/
 
 exclude_docs: |
   /agents/
@@ -47,10 +49,11 @@ theme:
     - search.suggest
     - search.highlight
     - content.code.copy
+    - content.action.edit
+    - content.code.annotate
 
 plugins:
   - search
-  - tags
   - minify:
       minify_html: true
       minify_js: true
@@ -70,6 +73,7 @@ plugins:
             show_source: true
             show_root_heading: true
             separate_signature: true
+            merge_init_into_class: true
             filters:
               - "!^_"
 
@@ -86,6 +90,9 @@ markdown_extensions:
       base_path: [.]
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - tables
   - toc:
       permalink: true
