@@ -59,6 +59,8 @@ For a VPS, set `IMAGE_REF=ghcr.io/OWNER/REPO:0.1.0` and the production settings 
 3. Choose storage extras, add your own API routers and models, and configure secrets in `.env` or your deployment secret store. Keep `.env` untracked.
 4. Configure GitHub Pages to use GitHub Actions. A `v*` tag runs CI, then publishes the docs and a GHCR image. The VPS pull and Compose restart are manual.
 
+See the [renaming checklist](docs/notes.md#renaming-the-template) for every file that carries the project name.
+
 ### Remove the examples
 
 The examples are meant to be copied, then deleted. When your first real feature exists, remove:

@@ -3,6 +3,10 @@ site_description: A production-ready FastAPI application template
 repo_url: https://github.com/rwrotson/fastapi-template
 repo_name: rwrotson/fastapi-template
 
+exclude_docs: |
+  /agents/
+  /plans/
+
 watch:
   - src/app/
   - .env.example
@@ -15,6 +19,7 @@ nav:
   - Storage: storage.md
   - Observability: observability.md
   - Deployment: deployment.md
+  - Notes: notes.md
   - Configuration: configuration.md
   - API Reference: reference/
 
