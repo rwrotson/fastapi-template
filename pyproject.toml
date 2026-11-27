@@ -277,6 +277,150 @@ type = "forbidden"
 source_modules = ["app.core"]
 forbidden_modules = ["app.api", "app.services", "app.infra"]
 
+[[tool.importlinter.contracts]]
+name = "Application layers"
+type = "layers"
+containers = ["app"]
+layers = ["main", "api", "container", "infra", "services | core | config"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "Service modules layers"
+type = "layers"
+containers = ["app.services"]
+layers = ["notes | greeting", "errors"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "API modules layers"
+type = "layers"
+containers = ["app.api"]
+layers = ["v1 | health", "dependencies | errors"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "API dependency providers layers"
+type = "layers"
+containers = ["app.api.dependencies"]
+layers = ["config | notes", "storage", "container"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "API v1 routers are independent"
+type = "layers"
+containers = ["app.api.v1"]
+layers = ["auth | examples | notes"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "Operational support modules layers"
+type = "layers"
+containers = ["app.core"]
+layers = ["middleware", "logging | metrics | problems | telemetry"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "Storage modules layers"
+type = "layers"
+containers = ["app.infra.storage"]
+layers = ["clickhouse | mongodb | notes | postgres_orm | postgres_raw | redis", "base | models"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "Transitive dependencies are not imported directly"
+type = "forbidden"
+source_modules = ["app"]
+forbidden_modules = [
+    "aiohappyeyeballs",
+    "aiohttp",
+    "aiosignal",
+    "annotated_doc",
+    "annotated_types",
+    "anyio",
+    "argcomplete",
+    "asgiref",
+    "ast_serialize",
+    "attr",
+    "attrs",
+    "babel",
+    "backrefs",
+    "certifi",
+    "cfgv",
+    "charset_normalizer",
+    "click",
+    "colorama",
+    "coverage",
+    "csscompressor",
+    "dateutil",
+    "decli",
+    "deprecated",
+    "distlib",
+    "dns",
+    "dotenv",
+    "execnet",
+    "filelock",
+    "frozenlist",
+    "ghp_import",
+    "google",
+    "greenlet",
+    "griffe",
+    "grimp",
+    "h11",
+    "htmlmin",
+    "httpcore2",
+    "identify",
+    "idna",
+    "iniconfig",
+    "jinja2",
+    "jsmin",
+    "librt",
+    "lz4",
+    "mako",
+    "markdown",
+    "markdown_it",
+    "markupsafe",
+    "mdurl",
+    "mergedeep",
+    "mkdocs",
+    "mkdocs_autorefs",
+    "mkdocs_get_deps",
+    "mkdocstrings_handlers",
+    "multidict",
+    "mypy_extensions",
+    "nodeenv",
+    "packaging",
+    "paginate",
+    "pastel",
+    "pathspec",
+    "platformdirs",
+    "pluggy",
+    "prompt_toolkit",
+    "propcache",
+    "pydantic_core",
+    "pygments",
+    "pymdownx",
+    "python_discovery",
+    "questionary",
+    "requests",
+    "rich",
+    "six",
+    "termcolor",
+    "tomlkit",
+    "truststore",
+    "typing_extensions",
+    "typing_inspection",
+    "urllib3",
+    "virtualenv",
+    "watchdog",
+    "wcwidth",
+    "wrapt",
+    "yaml",
+    "yaml_env_tag",
+    "yarl",
+]
+# Direct dependencies import them internally.
+allow_indirect_imports = true
+
 
 # POETHEPOET -------------------------------------------------------------------
 [tool.poe.tasks]

@@ -13,7 +13,7 @@ The greeting endpoint uses a service without persistence. The optional notes fea
 
 Business dependencies follow **HTTP → services ← infrastructure**. Services define ports without importing FastAPI, settings, or database drivers. Infrastructure implements those ports without importing HTTP code. `app/main.py` and `app/api/dependencies/` connect the layers; routers call use cases through that wiring.
 
-Import-linter checks these boundaries with `uv run poe lint-imports`; contracts are in `pyproject.toml`.
+Import-linter checks these boundaries with `uv run poe lint-imports`; contracts are in `pyproject.toml`. Each package with several modules has an exhaustive `layers` contract, so a new module must be added to it; packages installed only transitively cannot be imported directly.
 
 `app.config.Settings` holds defaults in code and reads `APP_*` values from `.env` and the process environment. `create_app()` loads a fresh settings instance unless one is supplied explicitly. During lifespan, it opens the storage manager and yields an `AppContainer` with settings and storage as lifespan state, which Starlette copies into each `request.state`. HTTP providers resolve that container from the current `Request`, so two application instances have separate resources. Lifespan closes resources on shutdown, including after a failed startup. FastAPI `dependency_overrides` remain available to tests and are never changed by startup code.
 
