@@ -64,7 +64,7 @@ config    src/app/config/        Pydantic Settings and environment loading
 - Keep mutable settings and storage state scoped to the application lifespan or request. Tests must pass in random order without depending on process-wide state.
 - Expected failures raise a `ServiceError` subclass from services; `app/api/errors.py` renders them as RFC 9457 problem details.
 - Tests never use the network, except `tests/integration/` under `--live`, which connects to the PostgreSQL database named by `APP_POSTGRES_ORM__DSN`.
-- Every secret setting is a `SecretStr` and is documented in the README "Configuration" section; secrets stay out of logs and reprs.
+- Every secret setting is a `SecretStr` and gets step-by-step instructions in a README "Credentials" section in the same change; secrets stay out of logs and reprs.
 - Code, docs, comments, and commit messages are in English.
 - Keep the user's `.env` and secrets untracked.
 

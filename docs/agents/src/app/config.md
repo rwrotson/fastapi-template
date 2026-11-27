@@ -6,4 +6,4 @@
 - Every setting must appear in `.env.example`; a test enforces it. Also update README, `docs/`, and `compose.yml` when a setting is public or affects deployment.
 - `create_app()` owns one settings instance and lifespan binds it through a FastAPI dependency provider. Do not read the environment elsewhere or keep module-level mutable settings.
 - `app.config` imports nothing from the other application packages; import-linter enforces it.
-- Document each secret in the README "Configuration" section.
+- A setting that holds a credential is a `SecretStr` and gets step-by-step instructions in a README "Credentials" section in the same change.

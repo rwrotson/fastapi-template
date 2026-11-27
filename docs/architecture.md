@@ -2,6 +2,8 @@
 
 The greeting endpoint uses a service without persistence. The optional notes feature connects a service port to a PostgreSQL adapter and an HTTP route.
 
+## Layers
+
 | Layer | Location | Responsibility | Allowed inward imports |
 | --- | --- | --- | --- |
 | Services | `app/services/` | Use cases, their transport-independent types, errors, and ports (`Protocol` interfaces) | Services and Python standard library |
@@ -12,6 +14,15 @@ The greeting endpoint uses a service without persistence. The optional notes fea
 | Shared operational support | `app/core/` | Logging, ASGI middleware, problem details, metrics, and tracing | No business-layer, HTTP-router, or infrastructure dependency |
 
 Business dependencies follow **HTTP → services ← infrastructure**. Services define ports without importing FastAPI, settings, or database drivers. Infrastructure implements those ports without importing HTTP code. `app/main.py` and `app/api/dependencies/` connect the layers; routers call use cases through that wiring.
+
+### Rules
+
+- A module or package whose name starts with `_` is imported only by modules in the same package and its subpackages.
+- Services import no FastAPI, Starlette, Pydantic Settings, storage drivers, or other application layers. Infrastructure imports no HTTP code. Configuration and `app/core/` import no business, HTTP, or infrastructure code (`core` and `config` are the lowest layers).
+- A new third-party dependency belongs to the lowest layer that needs it; a storage driver belongs to its backend's extra and is imported lazily so the base install works without it.
+- Every package with more than one module has an exhaustive `layers` contract: a new module must be added to it.
+- Packages installed only as transitive dependencies are not imported directly.
+- Code outside the package imports only the public modules: scripts in `docs/` use `app.config.settings`.
 
 Import-linter checks these boundaries with `uv run poe lint-imports`; contracts are in `pyproject.toml`. Each package with several modules has an exhaustive `layers` contract, so a new module must be added to it; packages installed only transitively cannot be imported directly.
 
@@ -25,6 +36,18 @@ Import-linter checks these boundaries with `uv run poe lint-imports`; contracts 
 4. `app/main.py` owns process-level setup and shutdown. The operational `/live`, `/ready`, and `/metrics` routes may access infrastructure state directly because they are not business use cases.
 
 The `GET /api/v1/examples/{name}` route calls `app.services.greeting.greeting_message()` and maps the result to its HTTP `Greeting` schema. The optional `POST /api/v1/notes` and `GET /api/v1/notes/{note_id}` routes demonstrate persistence. The notes use cases depend on `NoteUnitOfWork`, a protocol defined in `app/services/notes.py`; the PostgreSQL implementation lives in `app/infra/storage/notes.py`. The HTTP dependency imports that implementation only when the ORM backend is configured.
+
+## Errors
+
+Use cases raise service errors; `app/api/errors.py` renders them as RFC 9457 `application/problem+json` responses.
+
+| Error | Base class | HTTP status |
+| --- | --- | --- |
+| `ServiceError` | `Exception` | Base for expected use-case failures; has no handler of its own |
+| `NotFoundError` | `ServiceError` | 404 |
+| `ConflictError` | `ServiceError` | 409 |
+
+Request validation failures return 422, other HTTP exceptions keep their status, and unhandled exceptions return 500; a missing or unavailable backend returns 503. Add a `ServiceError` subclass and a handler in `register_error_handlers()` for each new kind of expected failure.
 
 ## Adding a feature
 
