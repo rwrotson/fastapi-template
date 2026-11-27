@@ -39,9 +39,16 @@ def restore_logging() -> Iterator[None]:
     """Undo the global logging setup that every application lifespan performs."""
     root = logging.getLogger()
     handlers, level = root.handlers[:], root.level
+    config = structlog.get_config()
+
     yield
-    root.handlers, root.level = handlers, level
-    structlog.reset_defaults()
+
+    for handler in root.handlers:
+        if handler not in handlers:
+            handler.close()
+    root.handlers = handlers
+    root.setLevel(level)  # Unlike assigning .level, this clears cached isEnabledFor results.
+    structlog.configure(**config)
 
 
 @pytest.fixture

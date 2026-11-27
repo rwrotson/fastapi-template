@@ -1,0 +1,69 @@
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+OPTIONAL_DRIVERS = ("sqlalchemy", "psycopg", "redis", "pymongo", "clickhouse_connect")
+
+PROBE = """
+import json, logging, sys
+import pydantic_settings
+import structlog
+
+reads = []
+original_init = pydantic_settings.BaseSettings.__init__
+
+
+def spy_init(self, *args, **kwargs):
+    reads.append("Settings()")
+    original_init(self, *args, **kwargs)
+
+
+def audit(event, args):
+    if event == "open" and str(args[0]).endswith(".env"):
+        reads.append(str(args[0]))
+
+
+pydantic_settings.BaseSettings.__init__ = spy_init
+sys.addaudithook(audit)
+before = len(logging.getLogger().handlers)
+import {module}
+print(json.dumps({{
+    "reads": reads,
+    "new_handlers": len(logging.getLogger().handlers) - before,
+    "structlog_configured": structlog.is_configured(),
+    "drivers": [name for name in {drivers!r} if name in sys.modules],
+}}))
+"""
+
+
+def probe(module: str, tmp_path: Path) -> dict[str, object]:
+    """Import a module in a fresh interpreter and report global side effects."""
+    (tmp_path / ".env").write_text("APP_NAME=From dotenv\nAPP_LOG_LEVEL=DEBUG\n")
+    code = PROBE.format(module=module, drivers=OPTIONAL_DRIVERS)
+    env = {"PATH": "", "APP_NAME": "From environment", "APP_REDIS__DSN": "redis://localhost"}
+
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, "-I", "-c", code],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=tmp_path,
+        env=env,
+    )
+
+    report: dict[str, object] = json.loads(result.stdout)
+
+    return report
+
+
+@pytest.mark.parametrize("module", ["app", "app.main"])
+def test_import_leaves_global_state_untouched(module: str, tmp_path: Path) -> None:
+    report = probe(module, tmp_path)
+
+    assert report["reads"] == []
+    assert report["new_handlers"] == 0
+    assert report["structlog_configured"] is False
+    assert report["drivers"] == []
