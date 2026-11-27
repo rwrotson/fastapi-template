@@ -82,13 +82,22 @@ POSTGRES_ORM: BackendSpec[async_sessionmaker[AsyncSession]] = BackendSpec(
     frozenset({"sqlalchemy", "psycopg"}),
 )
 CLICKHOUSE: BackendSpec[AsyncClient] = BackendSpec(
-    "clickhouse", "clickhouse", "app.infra.storage.clickhouse", frozenset({"clickhouse_connect"})
+    "clickhouse",
+    "clickhouse",
+    "app.infra.storage.clickhouse",
+    frozenset({"clickhouse_connect"}),
 )
 MONGODB: BackendSpec[AsyncMongoClient[dict[str, object]]] = BackendSpec(
-    "mongodb", "mongodb", "app.infra.storage.mongodb", frozenset({"pymongo"})
+    "mongodb",
+    "mongodb",
+    "app.infra.storage.mongodb",
+    frozenset({"pymongo"}),
 )
 REDIS: BackendSpec[Redis] = BackendSpec(
-    "redis", "redis", "app.infra.storage.redis", frozenset({"redis"})
+    "redis",
+    "redis",
+    "app.infra.storage.redis",
+    frozenset({"redis"}),
 )
 
 BACKENDS: tuple[BackendSpec[object], ...] = (POSTGRES_RAW, POSTGRES_ORM, CLICKHOUSE, MONGODB, REDIS)
@@ -111,6 +120,7 @@ class StorageManager:
         handle = self.handles.get(spec.name)
         if handle is None:
             raise StorageNotConfiguredError(spec.name)
+
         try:
             client = await handle.acquire()
         except Exception as exc:
@@ -130,6 +140,7 @@ class StorageManager:
                 backend_settings = getattr(settings, spec.name)
                 if backend_settings is None:
                     continue
+
                 try:
                     module = import_module(spec.module)
                     handle = await module.create_handle(backend_settings)
@@ -138,6 +149,7 @@ class StorageManager:
                         raise
                     message = f"Install the '{spec.extra}' extra to configure {spec.name}"
                     raise RuntimeError(message) from exc
+
                 self._cleanup.push_async_callback(self._close_handle, spec.name, handle)
                 self.handles[spec.name] = handle
                 STORAGE_AVAILABLE.labels(backend=spec.name).set(0)

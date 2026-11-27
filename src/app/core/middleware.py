@@ -26,6 +26,7 @@ def route_template(scope: Scope) -> str:
     # FastAPI's effective context retains prefixes omitted by included routers' routes.
     context = scope.get("fastapi", {}).get("effective_route_context")
     path = getattr(context, "path_format", None) or getattr(scope.get("route"), "path", None)
+
     return path if isinstance(path, str) else "unmatched"
 
 
@@ -40,6 +41,7 @@ class RequestMiddleware:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
+
         request_id = request_id_from_header(Headers(scope=scope).get("x-request-id"))
         tokens = structlog.contextvars.bind_contextvars(request_id=request_id)
         logger = structlog.get_logger()
@@ -65,6 +67,7 @@ class RequestMiddleware:
         except Exception:
             # Log inside the request context to retain its ID and avoid a second server log.
             logger.exception("unhandled_error", path=scope["path"])
+
             if response_started:
                 raise
             await problem_response(500, instance=scope["path"])(scope, receive, send_with_id)
@@ -72,9 +75,11 @@ class RequestMiddleware:
             route_path = route_template(scope)
             method = scope["method"]
             elapsed = time.perf_counter() - started
+
             HTTP_REQUESTS.labels(method=method, route=route_path, status=str(status)).inc()
             HTTP_DURATION.labels(method=method, route=route_path).observe(elapsed)
             HTTP_IN_PROGRESS.dec()
+
             if route_path not in QUIET_ROUTES:
                 client = scope.get("client")
                 logger.info(
@@ -85,4 +90,5 @@ class RequestMiddleware:
                     duration=elapsed,
                     client=client[0] if client else None,
                 )
+
             structlog.contextvars.reset_contextvars(**tokens)

@@ -58,7 +58,9 @@ def test_security_headers(client: TestClient, header: str, value: str) -> None:
 
 def test_valid_request_id_is_echoed(client: TestClient) -> None:
     request_id = str(uuid4())
+
     response = client.get("/live", headers={"X-Request-ID": request_id})
+
     assert response.headers["X-Request-ID"] == request_id
 
 
@@ -69,6 +71,7 @@ def test_invalid_request_id_is_replaced(client: TestClient) -> None:
 
 def test_trusted_hosts() -> None:
     settings = Settings(environment="test", allowed_hosts=["example.test"])
+
     with TestClient(create_app(settings)) as client:
         assert client.get("/live").status_code == 400
         assert client.get("/live", headers={"Host": "example.test"}).status_code == 200
@@ -77,6 +80,7 @@ def test_trusted_hosts() -> None:
 
 def test_cors_preflight_allows_configured_origin_and_headers() -> None:
     settings = Settings(environment="test", cors_origins=["https://app.example"])
+
     with TestClient(create_app(settings), base_url="http://localhost") as client:
         response = client.options(
             "/api/v1/examples/Ada",
@@ -86,6 +90,7 @@ def test_cors_preflight_allows_configured_origin_and_headers() -> None:
                 "Access-Control-Request-Headers": "Authorization",
             },
         )
+
     assert response.status_code == 200
     assert response.headers["Access-Control-Allow-Origin"] == "https://app.example"
     assert "authorization" in response.headers["Access-Control-Allow-Headers"].lower()
@@ -93,15 +98,18 @@ def test_cors_preflight_allows_configured_origin_and_headers() -> None:
 
 def test_docs_follow_environment(client: TestClient) -> None:
     assert client.get("/docs").status_code == 200
+
     operations = {
         operation["operationId"]
         for path in client.get("/openapi.json").json()["paths"].values()
         for operation in path.values()
     }
+
     assert {"examples-greet", "notes-create", "notes-read", "health-live"} <= operations
 
     with TestClient(
-        create_app(Settings(environment="production")), base_url="http://localhost"
+        create_app(Settings(environment="production")),
+        base_url="http://localhost",
     ) as production:
         assert production.get("/docs").status_code == 404
         assert production.get("/openapi.json").status_code == 404
@@ -111,7 +119,9 @@ def test_failed_startup_still_shuts_down_tracing(monkeypatch: pytest.MonkeyPatch
     provider = MagicMock()
     monkeypatch.setattr(main, "configure_tracing", lambda *_args: provider)
     monkeypatch.setattr(
-        StorageManager, "open", AsyncMock(side_effect=RuntimeError("storage failed"))
+        StorageManager,
+        "open",
+        AsyncMock(side_effect=RuntimeError("storage failed")),
     )
     application = create_app(Settings(environment="test"))
 

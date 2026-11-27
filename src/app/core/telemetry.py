@@ -10,7 +10,9 @@ UNTRACED_URLS = "/live,/ready,/metrics"
 
 
 def configure_tracing(
-    app: FastAPI, endpoint: str | None, service_name: str
+    app: FastAPI,
+    endpoint: str | None,
+    service_name: str,
 ) -> TracerProvider | None:
     """Instrument HTTP requests and return the provider for caller-owned shutdown."""
     if endpoint is None:

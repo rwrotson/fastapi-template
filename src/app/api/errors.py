@@ -28,7 +28,10 @@ async def http_error(request: Request, exc: Exception) -> Response:
     if not isinstance(exc, HTTPException):
         raise TypeError("Expected HTTPException")
     return problem_response(
-        exc.status_code, detail=exc.detail, instance=request.url.path, headers=exc.headers
+        exc.status_code,
+        detail=exc.detail,
+        instance=request.url.path,
+        headers=exc.headers,
     )
 
 

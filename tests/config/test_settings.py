@@ -40,6 +40,7 @@ def test_settings_use_code_defaults_and_environment(monkeypatch: pytest.MonkeyPa
     monkeypatch.setenv("APP_CLICKHOUSE__PORT", "9000")
     monkeypatch.setenv("APP_REDIS__DSN", "redis://user:hunter2@redis:6379/0")
     configured = load_settings()
+
     assert configured.name == "From environment"
     assert configured.clickhouse is not None
     assert configured.clickhouse.port == 9000
@@ -60,9 +61,10 @@ def test_process_environment_overrides_dotenv(monkeypatch: pytest.MonkeyPatch) -
 
 def test_environment_derived_defaults() -> None:
     development = Settings()
+    production = Settings(environment="production")
+
     assert development.resolved_log_format == "console"
     assert development.resolved_docs_enabled is True
-    production = Settings(environment="production")
     assert production.resolved_log_format == "json"
     assert production.resolved_docs_enabled is False
     assert Settings(environment="production", docs_enabled=True).resolved_docs_enabled is True
@@ -103,6 +105,7 @@ def test_lifespan_preserves_test_dependency_overrides() -> None:
 def test_env_example_documents_every_setting() -> None:
     documented = set(re.findall(r"^#? ?(APP_[A-Z_]+)=", ENV_EXAMPLE.read_text(), re.MULTILINE))
     settings = {name for name, _ in env_fields()}
+
     assert settings - documented == set(), "add new settings to .env.example"
     assert documented - settings == {"APP_PORT"}, "remove stale settings from .env.example"
 

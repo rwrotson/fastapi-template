@@ -73,7 +73,7 @@ for name, field in Settings.model_fields.items():
     section: type[BaseModel] | None = nested_model(field)
     if section is None:
         continue
-    lines += ["", f"## {name.capitalize()}", "", (section.__doc__ or "").strip(), ""]
+    lines += ["", f"## `{name}`", "", (section.__doc__ or "").strip(), ""]
     lines += [
         "Enabled when its required value is set. Install the matching extra first.",
         "",

@@ -25,28 +25,34 @@ def configure_logging(level: str, fmt: Literal["json", "console"] = "json") -> N
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         add_trace_context,
     ]
+
     renderer: structlog.types.Processor
     if fmt == "console":
         renderer = structlog.dev.ConsoleRenderer()
     else:
         shared_processors.append(structlog.processors.format_exc_info)
         renderer = structlog.processors.JSONRenderer()
+
     formatter = structlog.stdlib.ProcessorFormatter(
         processors=[structlog.stdlib.ProcessorFormatter.remove_processors_meta, renderer],
         foreign_pre_chain=shared_processors,
     )
+
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
     logging.basicConfig(level=level, handlers=[handler], force=True)
+
     for name in ("uvicorn", "uvicorn.error"):
         logger = logging.getLogger(name)
         logger.handlers.clear()
         logger.propagate = True
         logger.setLevel(logging.NOTSET)
+
     # RequestMiddleware writes the access log; silence uvicorn's copy even without --no-access-log.
     access = logging.getLogger("uvicorn.access")
     access.handlers.clear()
     access.propagate = False
+
     structlog.configure(
         processors=[*shared_processors, structlog.stdlib.ProcessorFormatter.wrap_for_formatter],
         logger_factory=structlog.stdlib.LoggerFactory(),

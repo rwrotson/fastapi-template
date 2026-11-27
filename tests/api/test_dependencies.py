@@ -18,6 +18,7 @@ from tests.fakes import make_handle
 async def test_unconfigured_storage_returns_503() -> None:
     with pytest.raises(HTTPException) as error:
         await get_redis(StorageManager())
+
     assert error.value.status_code == 503
     assert error.value.detail == "redis is not configured"
 
@@ -31,6 +32,7 @@ async def test_storage_dependencies_return_clients() -> None:
         "redis": make_handle(redis_client),
         "clickhouse": make_handle(clickhouse_client),
     }
+
     assert await get_postgres_raw(manager) is raw_pool
     assert await get_mongodb(manager) is mongo_client
     assert await get_redis(manager) is redis_client
@@ -45,6 +47,7 @@ async def test_unreachable_backend_returns_503() -> None:
         check=AsyncMock(),
         close=AsyncMock(),
     )
+
     with pytest.raises(HTTPException) as error:
         await get_clickhouse(manager)
     assert error.value.status_code == 503
@@ -57,6 +60,7 @@ async def test_orm_session_dependency() -> None:
     factory.return_value.__aenter__.return_value = session
     manager.handles["postgres_orm"] = make_handle(factory)
     dependency = get_postgres_session(manager)
+
     assert await anext(dependency) is session
     with pytest.raises(StopAsyncIteration):
         await anext(dependency)

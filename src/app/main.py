@@ -69,6 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         redoc_url="/redoc" if docs else None,
         openapi_url="/openapi.json" if docs else None,
     )
+
     allowed_hosts = sorted(set(config.allowed_hosts) | {"localhost", "127.0.0.1"})
     application.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
     application.add_middleware(
@@ -81,6 +82,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     application.add_middleware(GZipMiddleware, minimum_size=1000)
     application.add_middleware(RequestMiddleware)
+
     register_error_handlers(application)
     application.include_router(health_router)
     application.include_router(v1_router)

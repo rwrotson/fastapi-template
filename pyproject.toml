@@ -255,8 +255,19 @@ name = "Services stay independent of transport, storage and configuration"
 type = "forbidden"
 source_modules = ["app.services"]
 forbidden_modules = [
-    "fastapi", "starlette", "pydantic_settings", "sqlalchemy", "psycopg", "psycopg_pool",
-    "redis", "pymongo", "clickhouse_connect", "app.api", "app.infra", "app.core", "app.config",
+    "fastapi",
+    "starlette",
+    "pydantic_settings",
+    "sqlalchemy",
+    "psycopg",
+    "psycopg_pool",
+    "redis",
+    "pymongo",
+    "clickhouse_connect",
+    "app.api",
+    "app.infra",
+    "app.core",
+    "app.config",
 ]
 
 [[tool.importlinter.contracts]]

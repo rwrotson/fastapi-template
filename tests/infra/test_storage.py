@@ -33,20 +33,26 @@ async def test_manager_opens_probes_and_closes(fake_backends: AsyncMock) -> None
     fake_backends.assert_awaited_once_with(REDIS_SETTINGS)
     assert await manager.get(REDIS) is client
     assert await manager.readiness() == {"redis": "ok"}
+
     check.side_effect = ConnectionError("down")
+
     assert await manager.readiness() == {"redis": "unavailable"}
+
     await manager.close()
+
     close.assert_awaited_once()
     assert manager.handles == {}
 
 
 async def test_get_reports_missing_and_unreachable_backends() -> None:
     manager = StorageManager()
+
     with pytest.raises(StorageNotConfiguredError, match="redis is not configured"):
         await manager.get(REDIS)
 
     failing = AsyncMock(side_effect=ConnectionError("down"))
     manager.handles["redis"] = StorageHandle(acquire=failing, check=AsyncMock(), close=AsyncMock())
+
     with pytest.raises(StorageUnavailableError, match="redis is unavailable"):
         await manager.get(REDIS)
 
@@ -55,6 +61,7 @@ async def test_readiness_is_cached_and_bounded() -> None:
     check = AsyncMock()
     manager = StorageManager(readiness_cache_ttl=60)
     manager.handles["redis"] = make_handle(object(), check)
+
     assert await manager.readiness() == {"redis": "ok"}
     assert await manager.readiness() == {"redis": "ok"}
     check.assert_awaited_once()
@@ -64,6 +71,7 @@ async def test_readiness_is_cached_and_bounded() -> None:
 
     slow = StorageManager(readiness_timeout=0.01)
     slow.handles["redis"] = make_handle(object(), hang)
+
     assert await slow.readiness() == {"redis": "unavailable"}
 
 
@@ -71,13 +79,18 @@ def test_ready_is_503_for_unavailable_backend(fake_backends: AsyncMock) -> None:
     check = AsyncMock(side_effect=ConnectionError("down"))
     fake_backends.return_value = make_handle(object(), check)
     settings = Settings(environment="test", readiness_cache_ttl=0, redis=REDIS_SETTINGS)
+
     with TestClient(create_app(settings), base_url="http://localhost") as client:
         assert client.get("/live").status_code == 200
+
         response = client.get("/ready")
+
         assert response.status_code == 503
         assert response.json()["dependencies"] == {"redis": "unavailable"}
         assert 'app_storage_available{backend="redis"} 0.0' in client.get("/metrics").text
+
         check.side_effect = None
+
         assert 'app_storage_available{backend="redis"} 1.0' in client.get("/metrics").text
 
 
@@ -86,6 +99,7 @@ async def test_missing_extra_has_actionable_error(monkeypatch: pytest.MonkeyPatc
         raise ModuleNotFoundError("No module named 'redis'", name="redis")
 
     monkeypatch.setattr(base, "import_module", missing)
+
     with pytest.raises(RuntimeError, match="Install the 'redis' extra"):
         await StorageManager().open(Settings(redis=REDIS_SETTINGS))
 
@@ -94,6 +108,7 @@ async def test_missing_driver_during_client_creation_has_actionable_error(
     fake_backends: AsyncMock,
 ) -> None:
     fake_backends.side_effect = ModuleNotFoundError("No module named 'psycopg'", name="psycopg")
+
     with pytest.raises(RuntimeError, match="Install the 'postgres-raw' extra"):
         await StorageManager().open(Settings(postgres_raw=RAW_SETTINGS))
 
@@ -105,6 +120,7 @@ async def test_adapter_import_error_is_not_reported_as_missing_extra(
         raise ModuleNotFoundError("No module named 'internal'", name="internal")
 
     monkeypatch.setattr(base, "import_module", broken)
+
     with pytest.raises(ModuleNotFoundError, match="internal"):
         await StorageManager().open(Settings(redis=REDIS_SETTINGS))
 

@@ -14,6 +14,7 @@ def log_events(caplog: pytest.LogCaptureFixture) -> list[dict[str, object]]:
 
 def test_validation_error_is_problem_json(client: TestClient) -> None:
     response = client.post("/api/v1/examples/tasks", json={"message": ""})
+
     assert response.status_code == 422
     assert response.headers["Content-Type"] == "application/problem+json"
     problem = response.json()
@@ -25,6 +26,7 @@ def test_validation_error_is_problem_json(client: TestClient) -> None:
 
 def test_unknown_route_is_problem_json(client: TestClient) -> None:
     response = client.get("/missing")
+
     assert response.status_code == 404
     assert response.json()["title"] == "Not Found"
 
@@ -35,12 +37,15 @@ def test_service_conflict_maps_to_409(app: FastAPI, client: TestClient) -> None:
         raise ConflictError("already exists")
 
     response = client.get("/conflict")
+
     assert response.status_code == 409
     assert response.json()["detail"] == "already exists"
 
 
 def test_unhandled_error_is_logged_once_with_request_id(
-    app: FastAPI, client: TestClient, caplog: pytest.LogCaptureFixture
+    app: FastAPI,
+    client: TestClient,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     @app.get("/boom")
     async def boom() -> None:
@@ -53,6 +58,7 @@ def test_unhandled_error_is_logged_once_with_request_id(
     assert response.headers["X-Request-ID"] == request_id
     assert "secret internals" not in response.text
     assert response.json()["request_id"] == request_id
+
     events = log_events(caplog)
     errors = [event for event in events if event["event"] == "unhandled_error"]
     assert len(errors) == 1
@@ -62,7 +68,8 @@ def test_unhandled_error_is_logged_once_with_request_id(
 
 
 def test_access_log_skips_probes_and_records_client(
-    client: TestClient, caplog: pytest.LogCaptureFixture
+    client: TestClient,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     caplog.clear()
     client.get("/live")
