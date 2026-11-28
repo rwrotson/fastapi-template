@@ -5,3 +5,4 @@
 - Do not edit generated pages (configuration, API reference); edit `Settings` field descriptions and source docstrings instead.
 - The generator scripts are type-checked with the rest of the project (mypy strict covers `docs/`).
 - Update README, `.env.example`, and the docs pages when changing public settings, endpoints, storage extras, or deployment instructions. Docs pages: `getting_started.md`, `architecture.md`, `storage.md`, `observability.md`, `deployment.md`, `notes.md`.
+- Agent guides drift when code moves. Name files and symbols that a reader can check; when you rename or remove a module, setting, or task, search `AGENTS.md` and `docs/agents/` for it and update them in the same change.
