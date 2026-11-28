@@ -7,3 +7,4 @@
 - `create_app()` owns one settings instance and lifespan binds it through a FastAPI dependency provider. Do not read the environment elsewhere or keep module-level mutable settings.
 - `app.config` imports nothing from the other application packages; import-linter enforces it.
 - A setting that holds a credential is a `SecretStr` and gets step-by-step instructions in a README "Credentials" section in the same change.
+- Ruff `banned-api` bans `os.environ`, `os.getenv` and `os.putenv` outside `src/app/config/` and `tests/`.
