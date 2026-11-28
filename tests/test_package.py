@@ -29,7 +29,7 @@ def audit(event, args):
 pydantic_settings.BaseSettings.__init__ = spy_init
 sys.addaudithook(audit)
 before = len(logging.getLogger().handlers)
-import {module}
+{imports}
 print(json.dumps({{
     "reads": reads,
     "new_handlers": len(logging.getLogger().handlers) - before,
@@ -39,10 +39,21 @@ print(json.dumps({{
 """
 
 
-def probe(module: str, tmp_path: Path) -> dict[str, object]:
-    """Import a module in a fresh interpreter and report global side effects."""
+IMPORT_MODULE = "import {module}"
+
+IMPORT_ALL = """
+import importlib, pkgutil
+import app
+
+for info in pkgutil.walk_packages(app.__path__, "app."):
+    importlib.import_module(info.name)
+"""
+
+
+def probe(imports: str, tmp_path: Path) -> dict[str, object]:
+    """Run import statements in a fresh interpreter and report global side effects."""
     (tmp_path / ".env").write_text("APP_NAME=From dotenv\nAPP_LOG_LEVEL=DEBUG\n")
-    code = PROBE.format(module=module, drivers=OPTIONAL_DRIVERS)
+    code = PROBE.format(imports=imports, drivers=OPTIONAL_DRIVERS)
     env = {"PATH": "", "APP_NAME": "From environment", "APP_REDIS__DSN": "redis://localhost"}
 
     result = subprocess.run(  # noqa: S603
@@ -61,9 +72,18 @@ def probe(module: str, tmp_path: Path) -> dict[str, object]:
 
 @pytest.mark.parametrize("module", ["app", "app.main"])
 def test_import_leaves_global_state_untouched(module: str, tmp_path: Path) -> None:
-    report = probe(module, tmp_path)
+    report = probe(IMPORT_MODULE.format(module=module), tmp_path)
 
     assert report["reads"] == []
     assert report["new_handlers"] == 0
     assert report["structlog_configured"] is False
     assert report["drivers"] == []
+
+
+def test_importing_every_module_leaves_global_state_untouched(tmp_path: Path) -> None:
+    # Storage modules import optional drivers by design, so only the driver check is skipped.
+    report = probe(IMPORT_ALL, tmp_path)
+
+    assert report["reads"] == []
+    assert report["new_handlers"] == 0
+    assert report["structlog_configured"] is False
