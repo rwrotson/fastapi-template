@@ -40,8 +40,12 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/alembic.ini /app/alembic.ini
 COPY --from=builder /app/migrations /app/migrations
+# Apply Debian security fixes that the pinned base image does not include yet.
 # pip is unused at runtime; its bundled SBOM lists vendored libraries that scanners flag.
-RUN python -m pip uninstall --yes --root-user-action=ignore pip \
+RUN apt-get update \
+    && apt-get upgrade --yes --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip uninstall --yes --root-user-action=ignore pip \
     && useradd --system --uid 10001 --no-create-home appuser
 ENV PATH="/app/.venv/bin:$PATH" PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 USER 10001
