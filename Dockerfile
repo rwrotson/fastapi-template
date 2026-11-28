@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project --no-dev $UV_SYNC_EXTRAS
-COPY pyproject.toml uv.lock README.md alembic.ini ./
+COPY pyproject.toml uv.lock README.md LICENSE alembic.ini ./
 COPY src ./src
 COPY migrations ./migrations
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project --all-extras
-COPY pyproject.toml uv.lock README.md alembic.ini ./
+COPY pyproject.toml uv.lock README.md LICENSE alembic.ini ./
 COPY src ./src
 COPY migrations ./migrations
 RUN --mount=type=cache,target=/root/.cache/uv \
