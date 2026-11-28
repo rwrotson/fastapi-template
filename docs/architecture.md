@@ -58,6 +58,14 @@ Request validation failures return 422, other HTTP exceptions keep their status,
 
 The notes feature spans `app/services/notes.py` (types and use cases), `app/infra/storage/notes.py` (persistence), `app/api/dependencies/notes.py` (session wiring), and `app/api/v1/notes.py` (HTTP mapping).
 
+## Background tasks
+
+Tasks created during a request inherit its context, including the structlog `request_id`. Start lifespan-scoped tasks with `context=contextvars.Context()` so request IDs do not leak into their logs:
+
+```python
+task = asyncio.create_task(worker(), context=contextvars.Context())
+```
+
 ## Resource and transaction ownership
 
 - `app/infra/storage/` creates configured clients and registers cleanup as each client is created. The app lifespan owns the manager and closes it on shutdown or failed startup. A failed close is logged while cleanup continues for the other clients.

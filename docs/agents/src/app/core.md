@@ -8,3 +8,4 @@
 - `telemetry.py`: `configure_tracing()` is active only when `APP_OTLP_ENDPOINT` is set and skips probe and metrics routes.
 - Update `docs/observability.md` when changing log fields, metrics, or tracing behavior.
 - Ruff `banned-api` allows `logging.basicConfig`, `structlog.configure` and `logging.getLogger` only in `logging.py`; elsewhere use `structlog.get_logger()`.
+- Start lifespan-scoped tasks with `context=contextvars.Context()` so the request-bound `request_id` does not leak into their logs (see the architecture guide).
