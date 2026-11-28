@@ -8,7 +8,7 @@ from starlette.exceptions import HTTPException
 from starlette.responses import Response
 
 from app.core.problems import PROBLEM_MEDIA_TYPE, Problem, problem_response
-from app.services.errors import ConflictError, NotFoundError
+from app.services.errors import ConflictError, NotFoundError, ServiceError
 
 
 def problem_responses(*statuses: int) -> dict[int | str, dict[str, Any]]:
@@ -47,19 +47,30 @@ async def validation_error(request: Request, exc: Exception) -> Response:
     )
 
 
-async def not_found(request: Request, exc: Exception) -> Response:
-    """Render a missing resource as a problem response."""
-    return problem_response(404, detail=str(exc), instance=request.url.path)
+ERROR_STATUS: dict[type[ServiceError], int] = {
+    NotFoundError: 404,
+    ConflictError: 409,
+}
 
 
-async def conflict(request: Request, exc: Exception) -> Response:
-    """Render a service conflict as a problem response."""
-    return problem_response(409, detail=str(exc), instance=request.url.path)
+def status_for_error(exc: ServiceError) -> int:
+    """Resolve the HTTP status of a service error from the nearest mapped base class."""
+    for cls in type(exc).__mro__:
+        if cls in ERROR_STATUS:
+            return ERROR_STATUS[cls]
+    return 500
+
+
+async def service_error(request: Request, exc: Exception) -> Response:
+    """Render a service error as a problem response."""
+    if not isinstance(exc, ServiceError):
+        raise TypeError("Expected ServiceError")
+    return problem_response(status_for_error(exc), detail=str(exc), instance=request.url.path)
 
 
 def register_error_handlers(application: FastAPI) -> None:
     """Render HTTP, validation and use-case errors as RFC 9457 problem details."""
     application.add_exception_handler(HTTPException, http_error)
     application.add_exception_handler(RequestValidationError, validation_error)
-    application.add_exception_handler(NotFoundError, not_found)
-    application.add_exception_handler(ConflictError, conflict)
+    for error_type in ERROR_STATUS:
+        application.add_exception_handler(error_type, service_error)

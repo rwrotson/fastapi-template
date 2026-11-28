@@ -47,7 +47,7 @@ Use cases raise service errors; `app/api/errors.py` renders them as RFC 9457 `ap
 | `NotFoundError` | `ServiceError` | 404 |
 | `ConflictError` | `ServiceError` | 409 |
 
-Request validation failures return 422, other HTTP exceptions keep their status, and unhandled exceptions return 500; a missing or unavailable backend returns 503. Add a `ServiceError` subclass and a handler in `register_error_handlers()` for each new kind of expected failure.
+Request validation failures return 422, other HTTP exceptions keep their status, and unhandled exceptions return 500; a missing or unavailable backend returns 503. Add a `ServiceError` subclass and one `ERROR_STATUS` entry in `app/api/errors.py` for each new kind of expected failure; subclasses inherit the status of the nearest mapped base class.
 
 ## Adding a feature
 

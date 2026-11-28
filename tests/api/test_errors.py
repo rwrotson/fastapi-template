@@ -4,7 +4,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.services.errors import ConflictError
+from app.api.errors import status_for_error
+from app.services.errors import ConflictError, NotFoundError, ServiceError
 
 
 def log_events(caplog: pytest.LogCaptureFixture) -> list[dict[str, object]]:
@@ -79,3 +80,23 @@ def test_access_log_skips_probes_and_records_client(
     access = [e for e in log_events(caplog) if e["event"] == "http_request"]
     assert [event["route"] for event in access] == ["/api/v1/examples/{name}"]
     assert access[0]["client"] == "testclient"
+
+
+def test_status_for_error_resolves_subclasses() -> None:
+    class MissingNoteError(NotFoundError):
+        pass
+
+    assert status_for_error(MissingNoteError("x")) == 404
+    assert status_for_error(ConflictError("x")) == 409
+    assert status_for_error(ServiceError("x")) == 500
+
+
+def test_documented_problem_statuses_have_handlers(app: FastAPI) -> None:
+    handled = {404, 409, 422, 500, 503}
+    for path, item in app.openapi()["paths"].items():
+        for operation in item.values():
+            statuses = {int(status) for status in operation["responses"] if status.isdigit()}
+            errors = {status for status in statuses if status >= 400}
+            assert errors <= handled, path
+            if path.startswith("/api/v1"):
+                assert {422, 500, 503} <= errors, path
